@@ -78,6 +78,7 @@
       color: #fff;
       border: 1px solid rgba(249, 115, 22, 0.5);
     }
+    .actions { display:flex; gap:.4rem; flex-wrap:wrap; }
     table { width: 100%; border-collapse: collapse; margin-top: .5rem; font-size: .78rem; }
     th, td {
       border-bottom: 1px solid rgba(148, 163, 184, 0.1);
@@ -180,13 +181,13 @@
             <th>Teams / Players</th>
             <th>Score</th>
             <th>Notes</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody id="historyBody"></tbody>
       </table>
       <div id="emptyState" class="empty" style="display:none;">No matches yet — add your first one!</div>
 
-      <!-- Summary & Leaderboards -->
       <div class="summary-bar">
         <div class="pill"><span class="val" id="totalMatches">0</span> <span class="muted">Total Matches Played</span></div>
       </div>
@@ -208,27 +209,21 @@
   <script>
     const API = "https://solitary-moon-7578.michaelamarino16.workers.dev";
     const requiredPin = "0340";
+    let editingId = null;
 
     async function loadMatches() {
       try {
         const res = await fetch(API);
         return await res.json();
-      } catch (err) {
-        console.error("Error loading matches:", err);
-        return [];
-      }
+      } catch { return []; }
     }
 
     async function saveMatches(matches) {
-      try {
-        await fetch(API, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ matches })
-        });
-      } catch (err) {
-        console.error("Error saving matches:", err);
-      }
+      await fetch(API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ matches })
+      });
     }
 
     function calcLeaderboards(matches) {
@@ -237,94 +232,88 @@
       for (const m of matches) {
         const a = +m.teamA.score || 0, b = +m.teamB.score || 0;
         const winner = a > b ? "A" : b > a ? "B" : "TIE";
-
-        const aPlayers = (m.teamA.players || []).map(p => p.trim()).filter(Boolean);
-        const bPlayers = (m.teamB.players || []).map(p => p.trim()).filter(Boolean);
-        const aTeam = m.teamA.name || "Team A";
-        const bTeam = m.teamB.name || "Team B";
-
-        const indivEnsure = name => {
-          const key = name.toLowerCase();
-          if (!indiv.has(key)) indiv.set(key, { name, wins:0, losses:0, games:0 });
-          return indiv.get(key);
-        };
-        const teamEnsure = name => {
-          const key = name.toLowerCase();
-          if (!teams.has(key)) teams.set(key, { name, wins:0, losses:0, games:0 });
-          return teams.get(key);
-        };
-
-        for (const p of aPlayers) indivEnsure(p).games++;
-        for (const p of bPlayers) indivEnsure(p).games++;
-        teamEnsure(aTeam).games++;
-        teamEnsure(bTeam).games++;
-
-        if (winner === "A") {
-          for (const p of aPlayers) indivEnsure(p).wins++;
-          for (const p of bPlayers) indivEnsure(p).losses++;
-          teamEnsure(aTeam).wins++; teamEnsure(bTeam).losses++;
-        } else if (winner === "B") {
-          for (const p of bPlayers) indivEnsure(p).wins++;
-          for (const p of aPlayers) indivEnsure(p).losses++;
-          teamEnsure(bTeam).wins++; teamEnsure(aTeam).losses++;
-        }
+        const aPlayers = (m.teamA.players||[]).map(p=>p.trim()).filter(Boolean);
+        const bPlayers = (m.teamB.players||[]).map(p=>p.trim()).filter(Boolean);
+        const aTeam = m.teamA.name||"Team A", bTeam = m.teamB.name||"Team B";
+        const ensure = (map,name)=>{const k=name.toLowerCase();if(!map.has(k))map.set(k,{name,wins:0,losses:0,games:0});return map.get(k);};
+        for(const p of aPlayers)ensure(indiv,p).games++; for(const p of bPlayers)ensure(indiv,p).games++;
+        ensure(teams,aTeam).games++; ensure(teams,bTeam).games++;
+        if(winner==="A"){for(const p of aPlayers)ensure(indiv,p).wins++;for(const p of bPlayers)ensure(indiv,p).losses++;ensure(teams,aTeam).wins++;ensure(teams,bTeam).losses++;}
+        else if(winner==="B"){for(const p of bPlayers)ensure(indiv,p).wins++;for(const p of aPlayers)ensure(indiv,p).losses++;ensure(teams,bTeam).wins++;ensure(teams,aTeam).losses++;}
       }
-
-      const toArray = map => Array.from(map.values()).map(r => ({
-        ...r,
-        winpct: r.games ? (r.wins / r.games * 100).toFixed(0) : 0
-      })).sort((a,b)=>b.wins - a.wins || b.winpct - a.winpct || a.name.localeCompare(b.name));
-
-      return { indivArr: toArray(indiv), teamArr: toArray(teams) };
+      const sortFn=(a,b)=>b.wins-a.wins||b.winpct-a.winpct||a.name.localeCompare(b.name);
+      const toArr=map=>Array.from(map.values()).map(x=>({...x,winpct:x.games?((x.wins/x.games)*100).toFixed(0):0})).sort(sortFn);
+      return {indivArr:toArr(indiv),teamArr:toArr(teams)};
     }
 
     async function renderMatches() {
       const matches = await loadMatches();
       const tbody = document.getElementById("historyBody");
-      const empty = document.getElementById("emptyState");
-      const count = document.getElementById("matchCount");
       tbody.innerHTML = "";
-      if (!matches.length) {
-        empty.style.display = "block";
-        count.textContent = "0 matches";
-      } else {
-        empty.style.display = "none";
-        count.textContent = matches.length + (matches.length === 1 ? " match" : " matches");
-        matches.sort((a,b)=>new Date(b.dateTime)-new Date(a.dateTime)).forEach(m=>{
-          const tr=document.createElement("tr");
-          const d=new Date(m.dateTime);
-          tr.innerHTML = `
-            <td>${d.toLocaleString()}</td>
-            <td>
-              <div><strong>${m.teamA.name}</strong> <small style="color:#94a3b8">(${(m.teamA.players||[]).join(", ")||"—"})</small></div>
-              <div><strong>${m.teamB.name}</strong> <small style="color:#94a3b8">(${(m.teamB.players||[]).join(", ")||"—"})</small></div>
-            </td>
-            <td><span class="winner">${m.teamA.score > m.teamB.score ? m.teamA.name : m.teamB.score > m.teamA.score ? m.teamB.name : "Tie"}</span><br><span class="score-badge">${m.teamA.score} - ${m.teamB.score}</span></td>
-            <td>${m.notes || "—"}</td>`;
-          tbody.appendChild(tr);
-        });
-      }
+      if(!matches.length){document.getElementById("emptyState").style.display="block";return;}
+      document.getElementById("emptyState").style.display="none";
       document.getElementById("totalMatches").textContent = matches.length;
+      document.getElementById("matchCount").textContent = matches.length+" matches";
+
+      matches.sort((a,b)=>new Date(b.dateTime)-new Date(a.dateTime));
+      for(const m of matches){
+        const tr=document.createElement("tr");
+        const d=new Date(m.dateTime);
+        tr.innerHTML=`
+          <td>${d.toLocaleString()}</td>
+          <td>
+            <div><strong>${m.teamA.name}</strong> <small style="color:#94a3b8">(${(m.teamA.players||[]).join(", ")||"—"})</small></div>
+            <div><strong>${m.teamB.name}</strong> <small style="color:#94a3b8">(${(m.teamB.players||[]).join(", ")||"—"})</small></div>
+          </td>
+          <td><span class="score-badge">${m.teamA.score} - ${m.teamB.score}</span></td>
+          <td>${m.notes||"—"}</td>
+          <td class="actions">
+            <button class="secondary" onclick="editMatch('${m.id}')">Edit</button>
+            <button class="danger" onclick="deleteMatch('${m.id}')">Delete</button>
+          </td>`;
+        tbody.appendChild(tr);
+      }
 
       const { indivArr, teamArr } = calcLeaderboards(matches);
-      const lbI = document.getElementById("lbIndividuals");
-      const lbT = document.getElementById("lbTeams");
-      lbI.innerHTML = ""; lbT.innerHTML = "";
-      for (const r of indivArr)
-        lbI.innerHTML += `<div class="lb-row"><div>${r.name}</div><div>${r.wins}</div><div>${r.losses}</div><div>${r.games}</div><div>${r.winpct}%</div></div>`;
-      for (const r of teamArr)
-        lbT.innerHTML += `<div class="lb-row"><div>${r.name}</div><div>${r.wins}</div><div>${r.losses}</div><div>${r.games}</div><div>${r.winpct}%</div></div>`;
+      const lbI=document.getElementById("lbIndividuals"), lbT=document.getElementById("lbTeams");
+      lbI.innerHTML=""; lbT.innerHTML="";
+      for(const r of indivArr) lbI.innerHTML += `<div class="lb-row"><div>${r.name}</div><div>${r.wins}</div><div>${r.losses}</div><div>${r.games}</div><div>${r.winpct}%</div></div>`;
+      for(const r of teamArr) lbT.innerHTML += `<div class="lb-row"><div>${r.name}</div><div>${r.wins}</div><div>${r.losses}</div><div>${r.games}</div><div>${r.winpct}%</div></div>`;
     }
 
-    document.addEventListener("DOMContentLoaded", ()=>{
+    async function editMatch(id){
+      const matches=await loadMatches();
+      const m=matches.find(x=>x.id===id);
+      if(!m)return;
+      editingId=id;
+      document.getElementById("teamAName").value=m.teamA.name;
+      document.getElementById("teamBName").value=m.teamB.name;
+      document.getElementById("teamAPlayers").value=(m.teamA.players||[]).join(", ");
+      document.getElementById("teamBPlayers").value=(m.teamB.players||[]).join(", ");
+      document.getElementById("teamAScore").value=m.teamA.score;
+      document.getElementById("teamBScore").value=m.teamB.score;
+      document.getElementById("location").value=m.notes;
+      document.getElementById("date").value=new Date(m.dateTime).toISOString().slice(0,16);
+      document.getElementById("saveMatchBtn").textContent="Update Match";
+    }
+
+    async function deleteMatch(id){
+      const pin=prompt("Enter PIN to delete match:");
+      if(pin!==requiredPin){alert("Incorrect PIN — match not deleted.");return;}
+      const matches=(await loadMatches()).filter(x=>x.id!==id);
+      await saveMatches(matches);
+      renderMatches();
+    }
+
+    document.addEventListener("DOMContentLoaded",()=>{
       const dateInput=document.getElementById("date");
       const now=new Date();
       dateInput.value=new Date(now.getTime()-now.getTimezoneOffset()*60000).toISOString().slice(0,16);
       renderMatches();
 
-      document.getElementById("saveMatchBtn").addEventListener("click", async ()=>{
-        const enteredPin=prompt("Enter PIN to save match:");
-        if(enteredPin!==requiredPin){alert("Incorrect PIN — match not saved.");return;}
+      document.getElementById("saveMatchBtn").addEventListener("click",async()=>{
+        const pin=prompt("Enter PIN to save match:");
+        if(pin!==requiredPin){alert("Incorrect PIN — match not saved.");return;}
 
         const teamAName=document.getElementById("teamAName").value.trim()||"Team A";
         const teamBName=document.getElementById("teamBName").value.trim()||"Team B";
@@ -335,23 +324,66 @@
         const notes=document.getElementById("location").value.trim();
         const dateTime=document.getElementById("date").value||new Date().toISOString();
 
-        const match={
-          id:crypto.randomUUID?crypto.randomUUID():Date.now().toString(),
-          dateTime,
-          teamA:{name:teamAName,players:teamAPlayers?teamAPlayers.split(",").map(p=>p.trim()).filter(Boolean):[],score:teamAScore},
-          teamB:{name:teamBName,players:teamBPlayers?teamBPlayers.split(",").map(p=>p.trim()).filter(Boolean):[],score:teamBScore},
-          notes
-        };
         const matches=await loadMatches();
-        matches.push(match);
+        if(editingId){
+          const idx=matches.findIndex(x=>x.id===editingId);
+                  if(idx >= 0) {
+            matches[idx] = {
+              ...matches[idx],
+              dateTime,
+              teamA: {
+                name: teamAName,
+                players: teamAPlayers ? teamAPlayers.split(",").map(p => p.trim()).filter(Boolean) : [],
+                score: teamAScore
+              },
+              teamB: {
+                name: teamBName,
+                players: teamBPlayers ? teamBPlayers.split(",").map(p => p.trim()).filter(Boolean) : [],
+                score: teamBScore
+              },
+              notes
+            };
+          }
+          editingId = null;
+          document.getElementById("saveMatchBtn").textContent = "Save Match";
+        } else {
+          matches.push({
+            id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(),
+            dateTime,
+            teamA: {
+              name: teamAName,
+              players: teamAPlayers ? teamAPlayers.split(",").map(p => p.trim()).filter(Boolean) : [],
+              score: teamAScore
+            },
+            teamB: {
+              name: teamBName,
+              players: teamBPlayers ? teamBPlayers.split(",").map(p => p.trim()).filter(Boolean) : [],
+              score: teamBScore
+            },
+            notes
+          });
+        }
+
         await saveMatches(matches);
         renderMatches();
-        document.getElementById("teamAScore").value="";
-        document.getElementById("teamBScore").value="";
+
+        // Clear form fields for next entry
+        document.getElementById("teamAScore").value = "";
+        document.getElementById("teamBScore").value = "";
+        document.getElementById("teamAPlayers").value = "";
+        document.getElementById("teamBPlayers").value = "";
+        document.getElementById("teamAName").value = "";
+        document.getElementById("teamBName").value = "";
+        document.getElementById("location").value = "";
       });
 
-      document.getElementById("clearAllBtn").addEventListener("click", async ()=>{
-        if(confirm("Delete all saved matches?")){await saveMatches([]);renderMatches();}
+      document.getElementById("clearAllBtn").addEventListener("click", async () => {
+        const pin = prompt("Enter PIN to clear all matches:");
+        if(pin !== requiredPin) { alert("Incorrect PIN — matches not cleared."); return; }
+        if(confirm("Are you sure you want to delete ALL matches?")) {
+          await saveMatches([]);
+          renderMatches();
+        }
       });
     });
   </script>
