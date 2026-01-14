@@ -78,6 +78,11 @@
       color: #fff;
       border: 1px solid rgba(249, 115, 22, 0.5);
     }
+    button.secondary {
+      background: rgba(148, 163, 184, 0.15);
+      color: #fff;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+    }
     .actions { display:flex; gap:.4rem; flex-wrap:wrap; }
     table { width: 100%; border-collapse: collapse; margin-top: .5rem; font-size: .78rem; }
     th, td {
@@ -122,6 +127,24 @@
     <div class="card">
       <h2 style="margin-top:0;">New Match</h2>
       <p style="font-size:.75rem; color:var(--muted); margin-top:-.3rem; margin-bottom:.75rem;">Enter teams, players, and scores. PIN required to save.</p>
+
+      <!-- Player Auth -->
+      <div class="team-box" style="margin-bottom:.75rem;">
+        <div class="team-title">Who are you?</div>
+        <div class="row" style="margin:0;">
+          <div>
+            <label for="currentPlayer">Current Player</label>
+            <select id="currentPlayer" style="width:100%; background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(148, 163, 184, 0.2); border-radius: .5rem; padding: .45rem .6rem; color: var(--text);">
+            </select>
+            <small id="playerStatus" style="color:var(--muted); display:block; margin-top:.35rem;"></small>
+          </div>
+          <div style="display:flex; gap:.4rem; align-items:flex-end; flex-wrap:wrap;">
+            <button id="switchPlayerBtn" type="button">Switch</button>
+            <button id="managePlayersBtn" type="button" class="danger">Manage Players</button>
+          </div>
+        </div>
+      </div>
+
       <div class="row">
         <div><label for="teamAName">Team A Name</label><input id="teamAName" placeholder="e.g. Boards & Brews" /></div>
         <div><label for="teamBName">Team B Name</label><input id="teamBName" placeholder="e.g. Bag Tossers" /></div>
@@ -166,57 +189,286 @@
 
   <script>
     const API = "https://solitary-moon-7578.michaelamarino16.workers.dev";
-    const requiredPin = "0340";
+
+    // ADMIN PIN (used for Manage Players + Clear All + override)
+    const adminPin = "0340";
+
     let editingId = null;
 
+    // -------- Storage keys --------
+    const LS_PLAYERS = "ct_players_v1";     // { [lowerName]: { name, pinHash } }
+    const LS_CURRENT = "ct_current_player"; // lowerName
+
+    // -------- Helpers --------
+    async function sha256Hex(str) {
+      const bytes = new TextEncoder().encode(str);
+      const digest = await crypto.subtle.digest("SHA-256", bytes);
+      return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, "0")).join("");
+    }
+
+    function normalizeName(name) {
+      return (name || "").trim();
+    }
+
+    function keyName(name) {
+      return normalizeName(name).toLowerCase();
+    }
+
+    function getPlayers() {
+      try {
+        const raw = localStorage.getItem(LS_PLAYERS);
+        return raw ? JSON.parse(raw) : {};
+      } catch {
+        return {};
+      }
+    }
+
+    function setPlayers(players) {
+      localStorage.setItem(LS_PLAYERS, JSON.stringify(players));
+    }
+
+    function getCurrentPlayerKey() {
+      return localStorage.getItem(LS_CURRENT) || "";
+    }
+
+    function setCurrentPlayerKey(k) {
+      localStorage.setItem(LS_CURRENT, k);
+    }
+
+    function getCurrentPlayer() {
+      const players = getPlayers();
+      const k = getCurrentPlayerKey();
+      return players[k] || null;
+    }
+
+    async function verifyPlayerPin(playerName, pin) {
+      const players = getPlayers();
+      const k = keyName(playerName);
+      const p = players[k];
+      if (!p) return false;
+
+      // Bind hash to user key to reduce trivial reuse
+      const attempted = await sha256Hex(`${k}:${pin}`);
+      return attempted === p.pinHash;
+    }
+
+    function verifyAdminPin(pin) {
+      return pin === adminPin;
+    }
+
+    // -------- API --------
     async function loadMatches() {
       try { const r = await fetch(API); return await r.json(); }
       catch { return []; }
     }
 
     async function saveMatches(matches) {
-      await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ matches }) });
+      await fetch(API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ matches })
+      });
     }
 
+    // -------- Leaderboards (unchanged) --------
     function calcLeaderboards(matches) {
-      const indiv=new Map(),teams=new Map();
-      for(const m of matches){
-        const a=+m.teamA.score||0,b=+m.teamB.score||0;
-        const win=a>b?"A":b>a?"B":"TIE";
-        const aP=(m.teamA.players||[]).map(p=>p.trim()).filter(Boolean);
-        const bP=(m.teamB.players||[]).map(p=>p.trim()).filter(Boolean);
-        const aT=m.teamA.name||"Team A",bT=m.teamB.name||"Team B";
-        const e=(map,n)=>{const k=n.toLowerCase();if(!map.has(k))map.set(k,{name:n,wins:0,losses:0,games:0});return map.get(k);};
-        for(const p of aP)e(indiv,p).games++;for(const p of bP)e(indiv,p).games++;
-        e(teams,aT).games++;e(teams,bT).games++;
-        if(win==="A"){for(const p of aP)e(indiv,p).wins++;for(const p of bP)e(indiv,p).losses++;e(teams,aT).wins++;e(teams,bT).losses++;}
-        else if(win==="B"){for(const p of bP)e(indiv,p).wins++;for(const p of aP)e(indiv,p).losses++;e(teams,bT).wins++;e(teams,aT).losses++;}
+      const indiv = new Map(), teams = new Map();
+      for (const m of matches) {
+        const a = +m.teamA.score || 0, b = +m.teamB.score || 0;
+        const win = a > b ? "A" : b > a ? "B" : "TIE";
+        const aP = (m.teamA.players || []).map(p => p.trim()).filter(Boolean);
+        const bP = (m.teamB.players || []).map(p => p.trim()).filter(Boolean);
+        const aT = m.teamA.name || "Team A", bT = m.teamB.name || "Team B";
+        const e = (map, n) => {
+          const k = n.toLowerCase();
+          if (!map.has(k)) map.set(k, { name: n, wins: 0, losses: 0, games: 0 });
+          return map.get(k);
+        };
+        for (const p of aP) e(indiv, p).games++;
+        for (const p of bP) e(indiv, p).games++;
+        e(teams, aT).games++;
+        e(teams, bT).games++;
+        if (win === "A") {
+          for (const p of aP) e(indiv, p).wins++;
+          for (const p of bP) e(indiv, p).losses++;
+          e(teams, aT).wins++;
+          e(teams, bT).losses++;
+        } else if (win === "B") {
+          for (const p of bP) e(indiv, p).wins++;
+          for (const p of aP) e(indiv, p).losses++;
+          e(teams, bT).wins++;
+          e(teams, aT).losses++;
+        }
       }
-      const arr=m=>Array.from(m.values()).map(x=>({...x,winpct:x.games?((x.wins/x.games)*100).toFixed(0):0})).sort((a,b)=>b.wins-a.wins||b.winpct-a.winpct||a.name.localeCompare(b.name));
-      return{indivArr:arr(indiv),teamArr:arr(teams)};
+      const arr = m => Array.from(m.values())
+        .map(x => ({ ...x, winpct: x.games ? ((x.wins / x.games) * 100).toFixed(0) : 0 }))
+        .sort((a, b) => b.wins - a.wins || b.winpct - a.winpct || a.name.localeCompare(b.name));
+      return { indivArr: arr(indiv), teamArr: arr(teams) };
     }
 
-    async function renderMatches(){
-      const matches=await loadMatches();
-      const tbody=document.getElementById("historyBody");
-      tbody.innerHTML="";
-      if(!matches.length){document.getElementById("emptyState").style.display="block";return;}
-      document.getElementById("emptyState").style.display="none";
-      document.getElementById("totalMatches").textContent=matches.length;
-      document.getElementById("matchCount").textContent=matches.length+" match"+(matches.length>1?"es":"");
+    // -------- UI: players --------
+    function renderPlayerSelect() {
+      const sel = document.getElementById("currentPlayer");
+      const status = document.getElementById("playerStatus");
+      const players = getPlayers();
+      const keys = Object.keys(players).sort((a, b) => players[a].name.localeCompare(players[b].name));
 
-      matches.sort((a,b)=>new Date(b.dateTime)-new Date(a.dateTime));
-      for(const m of matches){
-        const d=new Date(m.dateTime);
-        const tr=document.createElement("tr");
-        tr.innerHTML=`
+      sel.innerHTML = "";
+      if (!keys.length) {
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "No players set (admin needed)";
+        sel.appendChild(opt);
+        status.textContent = "Ask the admin to add players (Manage Players).";
+        return;
+      }
+
+      for (const k of keys) {
+        const opt = document.createElement("option");
+        opt.value = k;
+        opt.textContent = players[k].name;
+        sel.appendChild(opt);
+      }
+
+      // Set selected
+      const currentKey = getCurrentPlayerKey();
+      const fallback = keys[0];
+      const selected = keys.includes(currentKey) ? currentKey : fallback;
+      sel.value = selected;
+      setCurrentPlayerKey(selected);
+      status.textContent = `Signed in as ${players[selected].name}.`;
+    }
+
+    async function ensureInitialPlayerSetup() {
+      const players = getPlayers();
+      if (Object.keys(players).length) return;
+
+      // Optional: create a starter "Admin" user with the admin PIN
+      const createAdmin = confirm("No players found on this device.\n\nCreate a default 'Admin' player using the admin PIN so you can start? (Recommended)");
+      if (!createAdmin) return;
+
+      const k = "admin";
+      players[k] = { name: "Admin", pinHash: await sha256Hex(`${k}:${adminPin}`) };
+      setPlayers(players);
+      setCurrentPlayerKey(k);
+    }
+
+    async function managePlayersFlow() {
+      const pin = prompt("Admin PIN to manage players:");
+      if (!verifyAdminPin((pin || "").trim())) {
+        alert("Incorrect admin PIN.");
+        return;
+      }
+
+      const action = prompt(
+        "Manage Players:\n" +
+        "Type one:\n" +
+        "1 = Add player\n" +
+        "2 = Reset player PIN\n" +
+        "3 = Remove player\n\n" +
+        "Cancel to exit."
+      );
+      if (!action) return;
+
+      const players = getPlayers();
+
+      if (action === "1") {
+        const name = normalizeName(prompt("New player name (e.g., Mike):") || "");
+        if (!name) return;
+
+        const k = keyName(name);
+        if (players[k]) { alert("That player already exists."); return; }
+
+        const newPin = (prompt(`Set a PIN for ${name} (4–8 digits recommended):`) || "").trim();
+        if (!newPin) return;
+
+        players[k] = { name, pinHash: await sha256Hex(`${k}:${newPin}`) };
+        setPlayers(players);
+        setCurrentPlayerKey(k);
+        renderPlayerSelect();
+        alert(`Added ${name}.`);
+        return;
+      }
+
+      if (action === "2") {
+        const name = normalizeName(prompt("Which player to reset (name):") || "");
+        const k = keyName(name);
+        if (!players[k]) { alert("Player not found."); return; }
+
+        const newPin = (prompt(`New PIN for ${players[k].name}:`) || "").trim();
+        if (!newPin) return;
+
+        players[k].pinHash = await sha256Hex(`${k}:${newPin}`);
+        setPlayers(players);
+        renderPlayerSelect();
+        alert(`PIN reset for ${players[k].name}.`);
+        return;
+      }
+
+      if (action === "3") {
+        const name = normalizeName(prompt("Which player to remove (name):") || "");
+        const k = keyName(name);
+        if (!players[k]) { alert("Player not found."); return; }
+
+        if (!confirm(`Remove ${players[k].name}? This only removes them from THIS device's local list.`)) return;
+
+        delete players[k];
+        setPlayers(players);
+
+        const cur = getCurrentPlayerKey();
+        if (cur === k) setCurrentPlayerKey(Object.keys(players)[0] || "");
+
+        renderPlayerSelect();
+        alert("Player removed.");
+        return;
+      }
+
+      alert("Unknown action.");
+    }
+
+    async function switchPlayerFlow() {
+      const sel = document.getElementById("currentPlayer");
+      const players = getPlayers();
+      const k = sel.value;
+      if (!k || !players[k]) return;
+
+      const pin = prompt(`Enter PIN for ${players[k].name} to switch:`) || "";
+      const ok = await verifyPlayerPin(players[k].name, pin.trim());
+      if (!ok) { alert("Incorrect PIN."); renderPlayerSelect(); return; }
+
+      setCurrentPlayerKey(k);
+      renderPlayerSelect();
+    }
+
+    // -------- Matches rendering --------
+    async function renderMatches() {
+      const matches = await loadMatches();
+      const tbody = document.getElementById("historyBody");
+      tbody.innerHTML = "";
+
+      document.getElementById("totalMatches").textContent = matches.length;
+      document.getElementById("matchCount").textContent = matches.length + " match" + (matches.length !== 1 ? "es" : "");
+
+      if (!matches.length) {
+        document.getElementById("emptyState").style.display = "block";
+        return;
+      }
+      document.getElementById("emptyState").style.display = "none";
+
+      matches.sort((a, b) => new Date(b.dateTime) - new Date(a.dateTime));
+      for (const m of matches) {
+        const d = new Date(m.dateTime);
+        const who = m.recordedBy ? ` <small style="color:#94a3b8;">(logged by ${m.recordedBy})</small>` : "";
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
           <td>${d.toLocaleString()}</td>
           <td>
             <div><strong>${m.teamA.name}</strong> <small style="color:#94a3b8">(${(m.teamA.players||[]).join(", ")||"—"})</small></div>
             <div><strong>${m.teamB.name}</strong> <small style="color:#94a3b8">(${(m.teamB.players||[]).join(", ")||"—"})</small></div>
+            <div style="margin-top:.2rem;">${who}</div>
           </td>
           <td><span class="score-badge">${m.teamA.score} - ${m.teamB.score}</span></td>
-          <td>${m.notes||"—"}</td>
+          <td>${m.notes || "—"}</td>
           <td class="actions">
             <button class="secondary" onclick="editMatch('${m.id}')">Edit</button>
             <button class="danger" onclick="deleteMatch('${m.id}')">Delete</button>
@@ -224,89 +476,146 @@
         tbody.appendChild(tr);
       }
 
-      const {indivArr,teamArr}=calcLeaderboards(matches);
-      const lbI=document.getElementById("lbIndividuals"),lbT=document.getElementById("lbTeams");
-      lbI.innerHTML="";lbT.innerHTML="";
-      for(const r of indivArr)lbI.innerHTML+=`<div class="lb-row"><div>${r.name}</div><div>${r.wins}</div><div>${r.losses}</div><div>${r.games}</div><div>${r.winpct}%</div></div>`;
-      for(const r of teamArr)lbT.innerHTML+=`<div class="lb-row"><div>${r.name}</div><div>${r.wins}</div><div>${r.losses}</div><div>${r.games}</div><div>${r.winpct}%</div></div>`;
+      const { indivArr, teamArr } = calcLeaderboards(matches);
+      const lbI = document.getElementById("lbIndividuals"), lbT = document.getElementById("lbTeams");
+      lbI.innerHTML = ""; lbT.innerHTML = "";
+      for (const r of indivArr) lbI.innerHTML += `<div class="lb-row"><div>${r.name}</div><div>${r.wins}</div><div>${r.losses}</div><div>${r.games}</div><div>${r.winpct}%</div></div>`;
+      for (const r of teamArr) lbT.innerHTML += `<div class="lb-row"><div>${r.name}</div><div>${r.wins}</div><div>${r.losses}</div><div>${r.games}</div><div>${r.winpct}%</div></div>`;
     }
 
-    async function editMatch(id){
-      const matches=await loadMatches();
-      const m=matches.find(x=>x.id===id);
-      if(!m)return;
-      editingId=id;
-      document.getElementById("teamAName").value=m.teamA.name;
-      document.getElementById("teamBName").value=m.teamB.name;
-      document.getElementById("teamAPlayers").value=(m.teamA.players||[]).join(", ");
-      document.getElementById("teamBPlayers").value=(m.teamB.players||[]).join(", ");
-      document.getElementById("teamAScore").value=m.teamA.score;
-      document.getElementById("teamBScore").value=m.teamB.score;
-      document.getElementById("location").value=m.notes;
-      document.getElementById("date").value=new Date(m.dateTime).toISOString().slice(0,16);
-      document.getElementById("saveMatchBtn").textContent="Update Match";
-    }
+    // Expose for inline onclick
+    window.editMatch = async function editMatch(id) {
+      const matches = await loadMatches();
+      const m = matches.find(x => x.id === id);
+      if (!m) return;
 
-    async function deleteMatch(id){
-      const pin=prompt("Enter PIN to delete match:");
-      if(pin!==requiredPin){alert("Incorrect PIN — match not deleted.");return;}
-      const matches=(await loadMatches()).filter(x=>x.id!==id);
-      await saveMatches(matches);
+      const current = getCurrentPlayer();
+      const currentName = current ? current.name : "";
+
+      // Only allow editing if you're the recorder OR admin override
+      if (m.recordedBy && currentName && m.recordedBy !== currentName) {
+        const adminOverride = verifyAdminPin((prompt("This match was logged by someone else.\nEnter ADMIN PIN to edit:") || "").trim());
+        if (!adminOverride) { alert("Not authorized."); return; }
+      }
+
+      editingId = id;
+      document.getElementById("teamAName").value = m.teamA.name;
+      document.getElementById("teamBName").value = m.teamB.name;
+      document.getElementById("teamAPlayers").value = (m.teamA.players || []).join(", ");
+      document.getElementById("teamBPlayers").value = (m.teamB.players || []).join(", ");
+      document.getElementById("teamAScore").value = m.teamA.score;
+      document.getElementById("teamBScore").value = m.teamB.score;
+      document.getElementById("location").value = m.notes;
+      document.getElementById("date").value = new Date(m.dateTime).toISOString().slice(0, 16);
+      document.getElementById("saveMatchBtn").textContent = "Update Match";
+    };
+
+    window.deleteMatch = async function deleteMatch(id) {
+      const matches = await loadMatches();
+      const m = matches.find(x => x.id === id);
+      if (!m) return;
+
+      const current = getCurrentPlayer();
+      if (!current) { alert("Select a player first."); return; }
+
+      const isOwner = !m.recordedBy || m.recordedBy === current.name;
+
+      if (isOwner) {
+        const pin = prompt(`Enter PIN for ${current.name} to delete:`) || "";
+        const ok = await verifyPlayerPin(current.name, pin.trim());
+        if (!ok) { alert("Incorrect PIN — match not deleted."); return; }
+      } else {
+        const pin = prompt("This match was logged by someone else.\nEnter ADMIN PIN to delete:") || "";
+        if (!verifyAdminPin(pin.trim())) { alert("Not authorized."); return; }
+      }
+
+      const updated = matches.filter(x => x.id !== id);
+      await saveMatches(updated);
       renderMatches();
-    }
+    };
 
-    document.addEventListener("DOMContentLoaded",()=>{
-      const dateInput=document.getElementById("date");
-      const now=new Date();
-      dateInput.value=new Date(now.getTime()-now.getTimezoneOffset()*60000).toISOString().slice(0,16);
+    // -------- Main --------
+    document.addEventListener("DOMContentLoaded", async () => {
+      const dateInput = document.getElementById("date");
+      const now = new Date();
+      dateInput.value = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+
+      await ensureInitialPlayerSetup();
+      renderPlayerSelect();
       renderMatches();
 
-      document.getElementById("saveMatchBtn").addEventListener("click",async()=>{
-        const pin=prompt("Enter PIN to save match:");
-        if(pin!==requiredPin){alert("Incorrect PIN — match not saved.");return;}
+      document.getElementById("managePlayersBtn").addEventListener("click", managePlayersFlow);
+      document.getElementById("switchPlayerBtn").addEventListener("click", switchPlayerFlow);
+      document.getElementById("currentPlayer").addEventListener("change", () => {
+        document.getElementById("playerStatus").textContent = "Click Switch to confirm with PIN.";
+      });
 
-        const teamAName=document.getElementById("teamAName").value.trim()||"Team A";
-        const teamBName=document.getElementById("teamBName").value.trim()||"Team B";
-        const teamAPlayers=document.getElementById("teamAPlayers").value.trim();
-        const teamBPlayers=document.getElementById("teamBPlayers").value.trim();
-        const teamAScore=parseInt(document.getElementById("teamAScore").value||"0",10);
-        const teamBScore=parseInt(document.getElementById("teamBScore").value||"0",10);
-        const notes=document.getElementById("location").value.trim();
-        const dateTime=document.getElementById("date").value||new Date().toISOString();
+      document.getElementById("saveMatchBtn").addEventListener("click", async () => {
+        const current = getCurrentPlayer();
+        if (!current) { alert("No player selected. Ask admin to add players."); return; }
 
-        const matches=await loadMatches();
-        if(editingId){
-          const idx=matches.findIndex(x=>x.id===editingId);
-          if(idx>=0){
-            matches[idx]={...matches[idx],dateTime,teamA:{name:teamAName,players:teamAPlayers?teamAPlayers.split(",").map(p=>p.trim()).filter(Boolean):[],score:teamAScore},teamB:{name:teamBName,players:teamBPlayers?teamBPlayers.split(",").map(p=>p.trim()).filter(Boolean):[],score:teamBScore},notes};
-          }
-          editingId=null;
-          document.getElementById("saveMatchBtn").textContent="Save Match";
+        const pin = prompt(`Enter PIN for ${current.name} to save match:`) || "";
+        const ok = await verifyPlayerPin(current.name, pin.trim());
+        if (!ok) { alert("Incorrect PIN — match not saved."); return; }
+
+        const teamAName = document.getElementById("teamAName").value.trim() || "Team A";
+        const teamBName = document.getElementById("teamBName").value.trim() || "Team B";
+        const teamAPlayers = document.getElementById("teamAPlayers").value.trim();
+        const teamBPlayers = document.getElementById("teamBPlayers").value.trim();
+        const teamAScore = parseInt(document.getElementById("teamAScore").value || "0", 10);
+        const teamBScore = parseInt(document.getElementById("teamBScore").value || "0", 10);
+        const notes = document.getElementById("location").value.trim();
+        const dateTime = document.getElementById("date").value || new Date().toISOString();
+
+        const matches = await loadMatches();
+
+        const payload = {
+          dateTime,
+          recordedBy: current.name,
+          teamA: {
+            name: teamAName,
+            players: teamAPlayers ? teamAPlayers.split(",").map(p => p.trim()).filter(Boolean) : [],
+            score: teamAScore
+          },
+          teamB: {
+            name: teamBName,
+            players: teamBPlayers ? teamBPlayers.split(",").map(p => p.trim()).filter(Boolean) : [],
+            score: teamBScore
+          },
+          notes
+        };
+
+        if (editingId) {
+          const idx = matches.findIndex(x => x.id === editingId);
+          if (idx >= 0) matches[idx] = { ...matches[idx], ...payload };
+          editingId = null;
+          document.getElementById("saveMatchBtn").textContent = "Save Match";
         } else {
           matches.push({
-            id:crypto.randomUUID?crypto.randomUUID():Date.now().toString(),
-            dateTime,
-            teamA:{name:teamAName,players:teamAPlayers?teamAPlayers.split(",").map(p=>p.trim()).filter(Boolean):[],score:teamAScore},
-            teamB:{name:teamBName,players:teamBPlayers?teamBPlayers.split(",").map(p=>p.trim()).filter(Boolean):[],score:teamBScore},
-            notes
+            id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(),
+            ...payload
           });
         }
 
         await saveMatches(matches);
         renderMatches();
-        document.getElementById("teamAName").value="";
-        document.getElementById("teamBName").value="";
-        document.getElementById("teamAPlayers").value="";
-        document.getElementById("teamBPlayers").value="";
-        document.getElementById("teamAScore").value="";
-        document.getElementById("teamBScore").value="";
-        document.getElementById("location").value="";
+
+        document.getElementById("teamAName").value = "";
+        document.getElementById("teamBName").value = "";
+        document.getElementById("teamAPlayers").value = "";
+        document.getElementById("teamBPlayers").value = "";
+        document.getElementById("teamAScore").value = "";
+        document.getElementById("teamBScore").value = "";
+        document.getElementById("location").value = "";
       });
 
-      document.getElementById("clearAllBtn").addEventListener("click",async()=>{
-        const pin=prompt("Enter PIN to clear all matches:");
-        if(pin!==requiredPin){alert("Incorrect PIN — matches not cleared.");return;}
-        if(confirm("Are you sure you want to delete ALL matches?")){await saveMatches([]);renderMatches();}
+      document.getElementById("clearAllBtn").addEventListener("click", async () => {
+        const pin = prompt("Enter ADMIN PIN to clear all matches:") || "";
+        if (!verifyAdminPin(pin.trim())) { alert("Incorrect admin PIN — matches not cleared."); return; }
+        if (confirm("Are you sure you want to delete ALL matches?")) {
+          await saveMatches([]);
+          renderMatches();
+        }
       });
     });
   </script>
