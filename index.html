@@ -90,7 +90,7 @@
     }
     button:disabled { opacity: .45; cursor: not-allowed; }
     .actions { display:flex; gap:.4rem; flex-wrap:wrap; align-items:center; }
-    .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: .5rem; }
+    .topbar { display:flex; justify-content: space-between; align-items: center; margin-bottom: .5rem; }
     table { width: 100%; border-collapse: collapse; margin-top: .5rem; font-size: .78rem; }
     th, td {
       border-bottom: 1px solid rgba(148, 163, 184, 0.1);
@@ -126,6 +126,14 @@
     .tiny { color: var(--muted); font-size: .72rem; }
     .ok { color: var(--ok); }
     .warn { color: var(--warn); }
+
+    /* Tabs */
+    .tab-active {
+      background: var(--accent) !important;
+      color: #0f172a !important;
+      border: none !important;
+    }
+
     @media (max-width: 960px) { .container { grid-template-columns: 1fr; } }
   </style>
 </head>
@@ -191,33 +199,46 @@
       <p class="hint">Tip: you can edit/delete only matches you logged (admin can override).</p>
     </div>
 
-    <!-- History / Leaderboards -->
+    <!-- Right Side: Tabs -->
     <div class="card">
       <div class="topbar">
-        <h2 style="margin:0;">Match History</h2>
-        <small id="matchCount" style="color:var(--muted);"></small>
+        <h2 style="margin:0;">Dashboard</h2>
+        <div class="actions" style="justify-content:flex-end;">
+          <button id="tabLeaderboards" class="secondary" type="button">Leaderboards</button>
+          <button id="tabHistory" class="secondary" type="button">Match History</button>
+        </div>
       </div>
 
-      <table>
-        <thead>
-          <tr><th>Date</th><th>Teams / Players</th><th>Score</th><th>Logged By</th><th>Actions</th></tr>
-        </thead>
-        <tbody id="historyBody"></tbody>
-      </table>
+      <!-- LEADERBOARDS TAB -->
+      <div id="viewLeaderboards">
+        <div class="summary-bar">
+          <div class="pill"><span class="val" id="totalMatches">0</span> <span class="muted">Total Matches Played</span></div>
+        </div>
 
-      <div id="emptyState" class="empty" style="display:none;">No matches yet — add your first one!</div>
+        <h2 style="margin:10px 0 0">Individual Leaderboard</h2>
+        <div class="lb lb-head lb-row"><div>Player</div><div>Wins</div><div>Losses</div><div>Games</div><div>Win %</div></div>
+        <div id="lbIndividuals"></div>
 
-      <div class="summary-bar">
-        <div class="pill"><span class="val" id="totalMatches">0</span> <span class="muted">Total Matches Played</span></div>
+        <h2 style="margin:14px 0 0">Team Leaderboard</h2>
+        <div class="lb lb-head lb-row"><div>Team (members)</div><div>Wins</div><div>Losses</div><div>Games</div><div>Win %</div></div>
+        <div id="lbTeams"></div>
       </div>
 
-      <h2 style="margin:10px 0 0">Individual Leaderboard</h2>
-      <div class="lb lb-head lb-row"><div>Player</div><div>Wins</div><div>Losses</div><div>Games</div><div>Win %</div></div>
-      <div id="lbIndividuals"></div>
+      <!-- HISTORY TAB -->
+      <div id="viewHistory" style="display:none;">
+        <div class="topbar" style="margin-top:.25rem;">
+          <small id="matchCount" style="color:var(--muted);"></small>
+        </div>
 
-      <h2 style="margin:14px 0 0">Team Leaderboard</h2>
-      <div class="lb lb-head lb-row"><div>Team (members)</div><div>Wins</div><div>Losses</div><div>Games</div><div>Win %</div></div>
-      <div id="lbTeams"></div>
+        <table>
+          <thead>
+            <tr><th>Date</th><th>Teams / Players</th><th>Score</th><th>Logged By</th><th>Actions</th></tr>
+          </thead>
+          <tbody id="historyBody"></tbody>
+        </table>
+
+        <div id="emptyState" class="empty" style="display:none;">No matches yet — add your first one!</div>
+      </div>
     </div>
   </div>
 
@@ -272,6 +293,20 @@
       return data;
     }
 
+    function setTab(which) {
+      const vL = document.getElementById("viewLeaderboards");
+      const vH = document.getElementById("viewHistory");
+      const bL = document.getElementById("tabLeaderboards");
+      const bH = document.getElementById("tabHistory");
+
+      const showLeaderboards = which === "leaderboards";
+      vL.style.display = showLeaderboards ? "block" : "none";
+      vH.style.display = showLeaderboards ? "none" : "block";
+
+      bL.classList.toggle("tab-active", showLeaderboards);
+      bH.classList.toggle("tab-active", !showLeaderboards);
+    }
+
     async function checkApiHealth() {
       const el = document.getElementById("apiStatus");
       try {
@@ -291,11 +326,10 @@
     }
 
     async function loadMatches() {
-      // Worker returns an array
       return await api("/matches", { method: "GET" });
     }
 
-    // ----- Leaderboards -----
+    // ----- Leaderboards (team = members) -----
     function calcLeaderboards(matches) {
       const indiv = new Map();
       const teams = new Map();
@@ -351,7 +385,6 @@
       return { indivArr: arr(indiv), teamArr: arr(teams) };
     }
 
-    // ----- UI helpers -----
     function updateAuthUI() {
       const { token, player } = getSession();
       const status = document.getElementById("authStatus");
@@ -393,14 +426,12 @@
         sel.appendChild(opt);
       }
 
-      // restore selection if signed in
       const session = getSession();
       if (session.player?.key && players.some(p => p.key === session.player.key)) {
         sel.value = session.player.key;
       }
     }
 
-    // ----- Auth -----
     async function signIn() {
       const sel = document.getElementById("playerSelect");
       const pin = (document.getElementById("pinInput").value || "").trim();
@@ -422,7 +453,6 @@
       await renderMatches();
     }
 
-    // ----- Create profile (invite code required every time) -----
     async function createPlayerProfile() {
       const inviteCode = (prompt("Invite code to create a player profile:") || "").trim();
       if (!inviteCode) return;
@@ -444,7 +474,6 @@
       await checkApiHealth();
     }
 
-    // ----- Admin manage -----
     async function managePlayersAdmin() {
       const adminPin = (prompt("Admin PIN to manage players:") || "").trim();
       if (!adminPin) return;
@@ -500,7 +529,6 @@
       await checkApiHealth();
     }
 
-    // ----- Matches -----
     async function saveMatch() {
       const session = getSession();
       if (!session.token || !session.player) {
@@ -535,6 +563,7 @@
       document.getElementById("teamBScore").value = "";
 
       await renderMatches();
+      setTab("history"); // optional: jump to history after save
     }
 
     async function renderMatches() {
@@ -618,6 +647,11 @@
     document.addEventListener("DOMContentLoaded", async () => {
       updateAuthUI();
 
+      // tab setup
+      document.getElementById("tabLeaderboards").addEventListener("click", () => setTab("leaderboards"));
+      document.getElementById("tabHistory").addEventListener("click", () => setTab("history"));
+      setTab("leaderboards");
+
       document.getElementById("signInBtn").addEventListener("click", async () => {
         try { await signIn(); }
         catch (e) { alert("Sign in failed: " + e.message); console.error(e); }
@@ -657,7 +691,7 @@
         if (e.key === "Enter") document.getElementById("signInBtn").click();
       });
 
-      try { await renderPlayerSelect(); } catch (e) { /* handled by alerts */ }
+      try { await renderPlayerSelect(); } catch (e) {}
       await checkApiHealth();
 
       try { await renderMatches(); }
