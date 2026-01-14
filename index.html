@@ -45,33 +45,36 @@
       display: block;
       margin-bottom: .25rem;
     }
-    input, textarea {
+    input, textarea, select {
       width: 100%;
       background: rgba(15, 23, 42, 0.4);
       border: 1px solid rgba(148, 163, 184, 0.2);
       border-radius: .5rem;
-      padding: .4rem .6rem .45rem;
+      padding: .45rem .6rem;
       color: var(--text);
       outline: none;
       font-size: .85rem;
     }
-    input:focus, textarea:focus { border-color: var(--accent); }
+    input:focus, textarea:focus, select:focus { border-color: var(--accent); }
+    textarea { padding: .4rem .6rem .45rem; }
     .row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; margin-bottom: .65rem; }
     .team-box {
       border: 1px solid rgba(148, 163, 184, 0.2);
       border-radius: .75rem;
-      padding: .5rem .6rem .65rem;
+      padding: .6rem .7rem .7rem;
       background: rgba(15, 23, 42, 0.3);
+      margin-bottom: .75rem;
     }
-    .team-title { font-weight: 600; margin-bottom: .35rem; }
+    .team-title { font-weight: 700; margin-bottom: .35rem; }
     button {
       background: var(--accent);
       border: none;
       border-radius: .5rem;
       padding: .5rem .75rem;
       color: #0f172a;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
+      white-space: nowrap;
     }
     button.danger {
       background: rgba(249, 115, 22, 0.15);
@@ -84,6 +87,7 @@
       border: 1px solid rgba(148, 163, 184, 0.25);
     }
     .actions { display:flex; gap:.4rem; flex-wrap:wrap; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: .5rem; }
     table { width: 100%; border-collapse: collapse; margin-top: .5rem; font-size: .78rem; }
     th, td {
       border-bottom: 1px solid rgba(148, 163, 184, 0.1);
@@ -98,11 +102,9 @@
       border: 1px solid rgba(56, 189, 248, 0.3);
       padding: .15rem .4rem;
       border-radius: .35rem;
-      font-weight: 600;
+      font-weight: 700;
       font-size: .68rem;
     }
-    .winner { color: #facc15; font-weight: 600; font-size: .68rem; display: inline-block; margin-right: .4rem; }
-    .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: .5rem; }
     .empty { text-align: center; color: var(--muted); padding: 1rem 0 0.3rem; font-size: .8rem; }
     .lb-row { display: grid; grid-template-columns: 1.2fr .6fr .6fr .6fr .6fr; gap: 10px; padding: 6px 0; }
     .lb-row + .lb-row { border-top: 1px solid rgba(148,163,184,.1); }
@@ -117,65 +119,91 @@
     }
     .pill { display:inline-flex; align-items: baseline; gap:8px; border:1px solid rgba(148,163,184,.25); border-radius: 999px; padding: 6px 10px; }
     .pill .val { font-weight: 900; }
+    .hint { color: var(--muted); font-size: .75rem; margin: .25rem 0 0; }
+    .tiny { color: var(--muted); font-size: .72rem; }
     @media (max-width: 960px) { .container { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
   <h1>Cornhole Match Tracker 🟦🟧</h1>
+
   <div class="container">
     <!-- Entry Form -->
     <div class="card">
       <h2 style="margin-top:0;">New Match</h2>
-      <p style="font-size:.75rem; color:var(--muted); margin-top:-.3rem; margin-bottom:.75rem;">Enter teams, players, and scores. PIN required to save.</p>
+      <p class="tiny" style="margin-top:-.3rem; margin-bottom:.75rem;">
+        Quick entry: teams/players + score. Date/time is saved automatically.
+      </p>
 
-      <!-- Player Auth -->
-      <div class="team-box" style="margin-bottom:.75rem;">
-        <div class="team-title">Who are you?</div>
-        <div class="row" style="margin:0;">
+      <!-- Sign In -->
+      <div class="team-box">
+        <div class="team-title">Sign In</div>
+        <div class="row" style="margin-bottom:.5rem;">
           <div>
-            <label for="currentPlayer">Current Player</label>
-            <select id="currentPlayer" style="width:100%; background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(148, 163, 184, 0.2); border-radius: .5rem; padding: .45rem .6rem; color: var(--text);">
-            </select>
-            <small id="playerStatus" style="color:var(--muted); display:block; margin-top:.35rem;"></small>
+            <label for="playerSelect">Player</label>
+            <select id="playerSelect"></select>
           </div>
-          <div style="display:flex; gap:.4rem; align-items:flex-end; flex-wrap:wrap;">
-            <button id="switchPlayerBtn" type="button">Switch</button>
-            <button id="managePlayersBtn" type="button" class="danger">Manage Players</button>
+          <div>
+            <label for="pinInput">PIN</label>
+            <input id="pinInput" type="password" inputmode="numeric" placeholder="Enter your PIN" />
           </div>
+        </div>
+        <div class="actions">
+          <button id="signInBtn" type="button">Unlock</button>
+          <button id="signOutBtn" type="button" class="secondary" style="display:none;">Sign Out</button>
+          <button id="managePlayersBtn" type="button" class="danger">Manage Players</button>
+        </div>
+        <div id="authStatus" class="hint">Not signed in.</div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label for="teamAPlayers">Team A Players</label>
+          <textarea id="teamAPlayers" rows="2" placeholder="Mike, Jess"></textarea>
+        </div>
+        <div>
+          <label for="teamBPlayers">Team B Players</label>
+          <textarea id="teamBPlayers" rows="2" placeholder="Chris, Sam"></textarea>
         </div>
       </div>
 
       <div class="row">
-        <div><label for="teamAName">Team A Name</label><input id="teamAName" placeholder="e.g. Boards & Brews" /></div>
-        <div><label for="teamBName">Team B Name</label><input id="teamBName" placeholder="e.g. Bag Tossers" /></div>
+        <div>
+          <label for="teamAScore">Team A Score</label>
+          <input type="number" id="teamAScore" min="0" max="21" placeholder="21" />
+        </div>
+        <div>
+          <label for="teamBScore">Team B Score</label>
+          <input type="number" id="teamBScore" min="0" max="21" placeholder="15" />
+        </div>
       </div>
-      <div class="row">
-        <div class="team-box"><div class="team-title">Team A Players</div><textarea id="teamAPlayers" rows="2" placeholder="Mike, Jess"></textarea></div>
-        <div class="team-box"><div class="team-title">Team B Players</div><textarea id="teamBPlayers" rows="2" placeholder="Chris, Sam"></textarea></div>
+
+      <div class="actions">
+        <button id="saveMatchBtn" type="button">Save Match</button>
+        <button id="clearAllBtn" type="button" class="danger" style="margin-left:auto;">Clear All (Admin)</button>
       </div>
-      <div class="row">
-        <div><label for="teamAScore">Team A Score</label><input type="number" id="teamAScore" min="0" max="21" placeholder="21" /></div>
-        <div><label for="teamBScore">Team B Score</label><input type="number" id="teamBScore" min="0" max="21" placeholder="15" /></div>
-      </div>
-      <div class="row">
-        <div><label for="location">Location / Notes</label><input id="location" placeholder="Backyard, League Night..." /></div>
-        <div><label for="date">Date/Time</label><input id="date" type="datetime-local" /></div>
-      </div>
-      <button id="saveMatchBtn">Save Match</button>
-      <button id="clearAllBtn" class="danger" style="float:right;">Clear All</button>
+
+      <p class="hint">Tip: you can edit/delete only matches you logged (admin can override).</p>
     </div>
 
     <!-- History & Leaderboards -->
     <div class="card">
-      <div class="topbar"><h2 style="margin:0;">Match History</h2><small id="matchCount" style="color:var(--muted);"></small></div>
+      <div class="topbar">
+        <h2 style="margin:0;">Match History</h2>
+        <small id="matchCount" style="color:var(--muted);"></small>
+      </div>
+
       <table>
         <thead>
-          <tr><th>Date</th><th>Teams / Players</th><th>Score</th><th>Notes</th><th>Actions</th></tr>
+          <tr><th>Date</th><th>Teams / Players</th><th>Score</th><th>Logged By</th><th>Actions</th></tr>
         </thead>
         <tbody id="historyBody"></tbody>
       </table>
+
       <div id="emptyState" class="empty" style="display:none;">No matches yet — add your first one!</div>
-      <div class="summary-bar"><div class="pill"><span class="val" id="totalMatches">0</span> <span class="muted">Total Matches Played</span></div></div>
+      <div class="summary-bar">
+        <div class="pill"><span class="val" id="totalMatches">0</span> <span class="muted">Total Matches Played</span></div>
+      </div>
 
       <h2 style="margin:10px 0 0">Individual Leaderboard</h2>
       <div class="lb lb-head lb-row"><div>Player</div><div>Wins</div><div>Losses</div><div>Games</div><div>Win %</div></div>
@@ -190,87 +218,52 @@
   <script>
     const API = "https://solitary-moon-7578.michaelamarino16.workers.dev";
 
-    // ADMIN PIN (used for Manage Players + Clear All + override)
-    const adminPin = "0340";
+    // Local session storage
+    const LS_TOKEN = "ct_device_token_v1";
+    const LS_PLAYER = "ct_player_v1"; // {key,name,isAdmin}
 
     let editingId = null;
 
-    // -------- Storage keys --------
-    const LS_PLAYERS = "ct_players_v1";     // { [lowerName]: { name, pinHash } }
-    const LS_CURRENT = "ct_current_player"; // lowerName
-
-    // -------- Helpers --------
-    async function sha256Hex(str) {
-      const bytes = new TextEncoder().encode(str);
-      const digest = await crypto.subtle.digest("SHA-256", bytes);
-      return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, "0")).join("");
+    function getSession() {
+      const token = localStorage.getItem(LS_TOKEN) || "";
+      let player = null;
+      try { player = JSON.parse(localStorage.getItem(LS_PLAYER) || "null"); } catch {}
+      return { token, player };
     }
 
-    function normalizeName(name) {
-      return (name || "").trim();
+    function setSession(token, player) {
+      localStorage.setItem(LS_TOKEN, token);
+      localStorage.setItem(LS_PLAYER, JSON.stringify(player));
+      updateAuthUI();
     }
 
-    function keyName(name) {
-      return normalizeName(name).toLowerCase();
+    function clearSession() {
+      localStorage.removeItem(LS_TOKEN);
+      localStorage.removeItem(LS_PLAYER);
+      updateAuthUI();
     }
 
-    function getPlayers() {
-      try {
-        const raw = localStorage.getItem(LS_PLAYERS);
-        return raw ? JSON.parse(raw) : {};
-      } catch {
-        return {};
-      }
+    async function api(path, opts = {}) {
+      const { token } = getSession();
+      const headers = { "Content-Type": "application/json", ...(opts.headers || {}) };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+      const res = await fetch(`${API}${path}`, { ...opts, headers });
+      const isJson = (res.headers.get("content-type") || "").includes("application/json");
+      const data = isJson ? await res.json() : await res.text();
+      if (!res.ok) throw new Error(data?.error || data || `HTTP ${res.status}`);
+      return data;
     }
 
-    function setPlayers(players) {
-      localStorage.setItem(LS_PLAYERS, JSON.stringify(players));
+    async function loadPlayers() {
+      const data = await api("/players", { method: "GET" });
+      return data.players || [];
     }
 
-    function getCurrentPlayerKey() {
-      return localStorage.getItem(LS_CURRENT) || "";
-    }
-
-    function setCurrentPlayerKey(k) {
-      localStorage.setItem(LS_CURRENT, k);
-    }
-
-    function getCurrentPlayer() {
-      const players = getPlayers();
-      const k = getCurrentPlayerKey();
-      return players[k] || null;
-    }
-
-    async function verifyPlayerPin(playerName, pin) {
-      const players = getPlayers();
-      const k = keyName(playerName);
-      const p = players[k];
-      if (!p) return false;
-
-      // Bind hash to user key to reduce trivial reuse
-      const attempted = await sha256Hex(`${k}:${pin}`);
-      return attempted === p.pinHash;
-    }
-
-    function verifyAdminPin(pin) {
-      return pin === adminPin;
-    }
-
-    // -------- API --------
     async function loadMatches() {
-      try { const r = await fetch(API); return await r.json(); }
-      catch { return []; }
+      return await api("/matches", { method: "GET" });
     }
 
-    async function saveMatches(matches) {
-      await fetch(API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ matches })
-      });
-    }
-
-    // -------- Leaderboards (unchanged) --------
+    // Leaderboards (same logic, based on players in team arrays)
     function calcLeaderboards(matches) {
       const indiv = new Map(), teams = new Map();
       for (const m of matches) {
@@ -278,16 +271,21 @@
         const win = a > b ? "A" : b > a ? "B" : "TIE";
         const aP = (m.teamA.players || []).map(p => p.trim()).filter(Boolean);
         const bP = (m.teamB.players || []).map(p => p.trim()).filter(Boolean);
-        const aT = m.teamA.name || "Team A", bT = m.teamB.name || "Team B";
+
+        const aT = m.teamA.name || "Team A";
+        const bT = m.teamB.name || "Team B";
+
         const e = (map, n) => {
           const k = n.toLowerCase();
           if (!map.has(k)) map.set(k, { name: n, wins: 0, losses: 0, games: 0 });
           return map.get(k);
         };
+
         for (const p of aP) e(indiv, p).games++;
         for (const p of bP) e(indiv, p).games++;
         e(teams, aT).games++;
         e(teams, bT).games++;
+
         if (win === "A") {
           for (const p of aP) e(indiv, p).wins++;
           for (const p of bP) e(indiv, p).losses++;
@@ -300,69 +298,88 @@
           e(teams, aT).losses++;
         }
       }
+
       const arr = m => Array.from(m.values())
         .map(x => ({ ...x, winpct: x.games ? ((x.wins / x.games) * 100).toFixed(0) : 0 }))
         .sort((a, b) => b.wins - a.wins || b.winpct - a.winpct || a.name.localeCompare(b.name));
+
       return { indivArr: arr(indiv), teamArr: arr(teams) };
     }
 
-    // -------- UI: players --------
-    function renderPlayerSelect() {
-      const sel = document.getElementById("currentPlayer");
-      const status = document.getElementById("playerStatus");
-      const players = getPlayers();
-      const keys = Object.keys(players).sort((a, b) => players[a].name.localeCompare(players[b].name));
+    function updateAuthUI() {
+      const { token, player } = getSession();
+      const status = document.getElementById("authStatus");
+      const pinInput = document.getElementById("pinInput");
+      const signOutBtn = document.getElementById("signOutBtn");
 
+      if (token && player) {
+        status.textContent = `Signed in as ${player.name}${player.isAdmin ? " (Admin)" : ""}.`;
+        pinInput.value = "";
+        pinInput.placeholder = "Unlocked";
+        pinInput.disabled = true;
+        signOutBtn.style.display = "inline-block";
+      } else {
+        status.textContent = "Not signed in.";
+        pinInput.disabled = false;
+        pinInput.placeholder = "Enter your PIN";
+        signOutBtn.style.display = "none";
+      }
+    }
+
+    async function renderPlayerSelect() {
+      const players = await loadPlayers();
+      const sel = document.getElementById("playerSelect");
       sel.innerHTML = "";
-      if (!keys.length) {
+
+      if (!players.length) {
         const opt = document.createElement("option");
         opt.value = "";
-        opt.textContent = "No players set (admin needed)";
+        opt.textContent = "No players found (admin must add)";
         sel.appendChild(opt);
-        status.textContent = "Ask the admin to add players (Manage Players).";
         return;
       }
 
-      for (const k of keys) {
+      for (const p of players) {
         const opt = document.createElement("option");
-        opt.value = k;
-        opt.textContent = players[k].name;
+        opt.value = p.key;
+        opt.textContent = p.name + (p.isAdmin ? " (Admin)" : "");
         sel.appendChild(opt);
       }
 
-      // Set selected
-      const currentKey = getCurrentPlayerKey();
-      const fallback = keys[0];
-      const selected = keys.includes(currentKey) ? currentKey : fallback;
-      sel.value = selected;
-      setCurrentPlayerKey(selected);
-      status.textContent = `Signed in as ${players[selected].name}.`;
-    }
-
-    async function ensureInitialPlayerSetup() {
-      const players = getPlayers();
-      if (Object.keys(players).length) return;
-
-      // Optional: create a starter "Admin" user with the admin PIN
-      const createAdmin = confirm("No players found on this device.\n\nCreate a default 'Admin' player using the admin PIN so you can start? (Recommended)");
-      if (!createAdmin) return;
-
-      const k = "admin";
-      players[k] = { name: "Admin", pinHash: await sha256Hex(`${k}:${adminPin}`) };
-      setPlayers(players);
-      setCurrentPlayerKey(k);
-    }
-
-    async function managePlayersFlow() {
-      const pin = prompt("Admin PIN to manage players:");
-      if (!verifyAdminPin((pin || "").trim())) {
-        alert("Incorrect admin PIN.");
-        return;
+      // restore last selected if possible
+      const session = getSession();
+      if (session.player?.key && players.some(p => p.key === session.player.key)) {
+        sel.value = session.player.key;
       }
+    }
+
+    async function signIn() {
+      const sel = document.getElementById("playerSelect");
+      const pin = (document.getElementById("pinInput").value || "").trim();
+      if (!sel.value) { alert("Pick a player first."); return; }
+      if (!pin) { alert("Enter your PIN."); return; }
+
+      // Need name, not key, for the worker auth endpoint.
+      // We'll map key->name by fetching players again (fast and simple).
+      const players = await loadPlayers();
+      const picked = players.find(p => p.key === sel.value);
+      if (!picked) { alert("Player not found."); return; }
+
+      const data = await api("/auth/pin", {
+        method: "POST",
+        body: JSON.stringify({ name: picked.name, pin })
+      });
+
+      setSession(data.token, data.player);
+      await renderMatches();
+    }
+
+    async function managePlayers() {
+      const adminPin = prompt("Admin PIN to manage players:") || "";
+      if (!adminPin.trim()) return;
 
       const action = prompt(
         "Manage Players:\n" +
-        "Type one:\n" +
         "1 = Add player\n" +
         "2 = Reset player PIN\n" +
         "3 = Remove player\n\n" +
@@ -370,252 +387,191 @@
       );
       if (!action) return;
 
-      const players = getPlayers();
+      let name = "";
+      let newPin = "";
 
       if (action === "1") {
-        const name = normalizeName(prompt("New player name (e.g., Mike):") || "");
+        name = (prompt("New player name:") || "").trim();
+        newPin = (prompt(`Set a PIN for ${name}:`) || "").trim();
+        if (!name || !newPin) return;
+
+        await api("/admin/player", {
+          method: "POST",
+          body: JSON.stringify({ adminPin, action: "add", name, newPin })
+        });
+        alert("Player added.");
+      } else if (action === "2") {
+        name = (prompt("Player name to reset:") || "").trim();
+        newPin = (prompt(`New PIN for ${name}:`) || "").trim();
+        if (!name || !newPin) return;
+
+        await api("/admin/player", {
+          method: "POST",
+          body: JSON.stringify({ adminPin, action: "reset", name, newPin })
+        });
+        alert("PIN reset.");
+      } else if (action === "3") {
+        name = (prompt("Player name to remove:") || "").trim();
         if (!name) return;
 
-        const k = keyName(name);
-        if (players[k]) { alert("That player already exists."); return; }
+        if (!confirm(`Remove ${name}?`)) return;
 
-        const newPin = (prompt(`Set a PIN for ${name} (4–8 digits recommended):`) || "").trim();
-        if (!newPin) return;
-
-        players[k] = { name, pinHash: await sha256Hex(`${k}:${newPin}`) };
-        setPlayers(players);
-        setCurrentPlayerKey(k);
-        renderPlayerSelect();
-        alert(`Added ${name}.`);
-        return;
-      }
-
-      if (action === "2") {
-        const name = normalizeName(prompt("Which player to reset (name):") || "");
-        const k = keyName(name);
-        if (!players[k]) { alert("Player not found."); return; }
-
-        const newPin = (prompt(`New PIN for ${players[k].name}:`) || "").trim();
-        if (!newPin) return;
-
-        players[k].pinHash = await sha256Hex(`${k}:${newPin}`);
-        setPlayers(players);
-        renderPlayerSelect();
-        alert(`PIN reset for ${players[k].name}.`);
-        return;
-      }
-
-      if (action === "3") {
-        const name = normalizeName(prompt("Which player to remove (name):") || "");
-        const k = keyName(name);
-        if (!players[k]) { alert("Player not found."); return; }
-
-        if (!confirm(`Remove ${players[k].name}? This only removes them from THIS device's local list.`)) return;
-
-        delete players[k];
-        setPlayers(players);
-
-        const cur = getCurrentPlayerKey();
-        if (cur === k) setCurrentPlayerKey(Object.keys(players)[0] || "");
-
-        renderPlayerSelect();
+        await api("/admin/player", {
+          method: "POST",
+          body: JSON.stringify({ adminPin, action: "remove", name })
+        });
         alert("Player removed.");
+      } else {
+        alert("Unknown action.");
         return;
       }
 
-      alert("Unknown action.");
+      await renderPlayerSelect();
     }
 
-    async function switchPlayerFlow() {
-      const sel = document.getElementById("currentPlayer");
-      const players = getPlayers();
-      const k = sel.value;
-      if (!k || !players[k]) return;
+    async function saveMatch() {
+      const session = getSession();
+      if (!session.token || !session.player) {
+        alert("Sign in first.");
+        return;
+      }
 
-      const pin = prompt(`Enter PIN for ${players[k].name} to switch:`) || "";
-      const ok = await verifyPlayerPin(players[k].name, pin.trim());
-      if (!ok) { alert("Incorrect PIN."); renderPlayerSelect(); return; }
+      const aPlayersRaw = (document.getElementById("teamAPlayers").value || "").trim();
+      const bPlayersRaw = (document.getElementById("teamBPlayers").value || "").trim();
+      const aScore = parseInt(document.getElementById("teamAScore").value || "", 10);
+      const bScore = parseInt(document.getElementById("teamBScore").value || "", 10);
 
-      setCurrentPlayerKey(k);
-      renderPlayerSelect();
+      if (!aPlayersRaw || !bPlayersRaw) {
+        alert("Enter players for both teams (comma-separated).");
+        return;
+      }
+      if (!Number.isFinite(aScore) || !Number.isFinite(bScore)) {
+        alert("Enter both scores.");
+        return;
+      }
+
+      const payload = {
+        teamA: { name: "Team A", players: aPlayersRaw.split(",").map(x => x.trim()).filter(Boolean), score: aScore },
+        teamB: { name: "Team B", players: bPlayersRaw.split(",").map(x => x.trim()).filter(Boolean), score: bScore }
+      };
+
+      if (!editingId) {
+        await api("/matches", { method: "POST", body: JSON.stringify(payload) });
+      } else {
+        await api(`/matches/${encodeURIComponent(editingId)}`, { method: "PUT", body: JSON.stringify(payload) });
+        editingId = null;
+        document.getElementById("saveMatchBtn").textContent = "Save Match";
+      }
+
+      document.getElementById("teamAPlayers").value = "";
+      document.getElementById("teamBPlayers").value = "";
+      document.getElementById("teamAScore").value = "";
+      document.getElementById("teamBScore").value = "";
+
+      await renderMatches();
     }
 
-    // -------- Matches rendering --------
     async function renderMatches() {
       const matches = await loadMatches();
       const tbody = document.getElementById("historyBody");
       tbody.innerHTML = "";
 
       document.getElementById("totalMatches").textContent = matches.length;
-      document.getElementById("matchCount").textContent = matches.length + " match" + (matches.length !== 1 ? "es" : "");
+      document.getElementById("matchCount").textContent = `${matches.length} match${matches.length === 1 ? "" : "es"}`;
 
       if (!matches.length) {
         document.getElementById("emptyState").style.display = "block";
-        return;
+      } else {
+        document.getElementById("emptyState").style.display = "none";
       }
-      document.getElementById("emptyState").style.display = "none";
 
       matches.sort((a, b) => new Date(b.dateTime) - new Date(a.dateTime));
+
+      const session = getSession();
+      const meKey = session.player?.key || "";
+      const isAdmin = !!session.player?.isAdmin;
+
       for (const m of matches) {
         const d = new Date(m.dateTime);
-        const who = m.recordedBy ? ` <small style="color:#94a3b8;">(logged by ${m.recordedBy})</small>` : "";
+        const canEdit = isAdmin || (meKey && m.recordedByKey === meKey);
+
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td>${d.toLocaleString()}</td>
           <td>
             <div><strong>${m.teamA.name}</strong> <small style="color:#94a3b8">(${(m.teamA.players||[]).join(", ")||"—"})</small></div>
             <div><strong>${m.teamB.name}</strong> <small style="color:#94a3b8">(${(m.teamB.players||[]).join(", ")||"—"})</small></div>
-            <div style="margin-top:.2rem;">${who}</div>
           </td>
           <td><span class="score-badge">${m.teamA.score} - ${m.teamB.score}</span></td>
-          <td>${m.notes || "—"}</td>
+          <td>${m.recordedBy || "—"}</td>
           <td class="actions">
-            <button class="secondary" onclick="editMatch('${m.id}')">Edit</button>
-            <button class="danger" onclick="deleteMatch('${m.id}')">Delete</button>
-          </td>`;
+            <button class="secondary" ${canEdit ? "" : "disabled"} data-edit="${m.id}">Edit</button>
+            <button class="danger" ${canEdit ? "" : "disabled"} data-del="${m.id}">Delete</button>
+          </td>
+        `;
         tbody.appendChild(tr);
       }
 
+      // attach action handlers
+      tbody.querySelectorAll("button[data-edit]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          if (btn.disabled) return;
+          const id = btn.getAttribute("data-edit");
+          const all = await loadMatches();
+          const m = all.find(x => x.id === id);
+          if (!m) return;
+
+          editingId = id;
+          document.getElementById("teamAPlayers").value = (m.teamA.players || []).join(", ");
+          document.getElementById("teamBPlayers").value = (m.teamB.players || []).join(", ");
+          document.getElementById("teamAScore").value = m.teamA.score;
+          document.getElementById("teamBScore").value = m.teamB.score;
+          document.getElementById("saveMatchBtn").textContent = "Update Match";
+        });
+      });
+
+      tbody.querySelectorAll("button[data-del]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          if (btn.disabled) return;
+          const id = btn.getAttribute("data-del");
+          if (!confirm("Delete this match?")) return;
+          await api(`/matches/${encodeURIComponent(id)}`, { method: "DELETE" });
+          await renderMatches();
+        });
+      });
+
       const { indivArr, teamArr } = calcLeaderboards(matches);
-      const lbI = document.getElementById("lbIndividuals"), lbT = document.getElementById("lbTeams");
-      lbI.innerHTML = ""; lbT.innerHTML = "";
-      for (const r of indivArr) lbI.innerHTML += `<div class="lb-row"><div>${r.name}</div><div>${r.wins}</div><div>${r.losses}</div><div>${r.games}</div><div>${r.winpct}%</div></div>`;
-      for (const r of teamArr) lbT.innerHTML += `<div class="lb-row"><div>${r.name}</div><div>${r.wins}</div><div>${r.losses}</div><div>${r.games}</div><div>${r.winpct}%</div></div>`;
+      const lbI = document.getElementById("lbIndividuals");
+      const lbT = document.getElementById("lbTeams");
+      lbI.innerHTML = "";
+      lbT.innerHTML = "";
+
+      for (const r of indivArr) {
+        lbI.innerHTML += `<div class="lb-row"><div>${r.name}</div><div>${r.wins}</div><div>${r.losses}</div><div>${r.games}</div><div>${r.winpct}%</div></div>`;
+      }
+      for (const r of teamArr) {
+        lbT.innerHTML += `<div class="lb-row"><div>${r.name}</div><div>${r.wins}</div><div>${r.losses}</div><div>${r.games}</div><div>${r.winpct}%</div></div>`;
+      }
     }
 
-    // Expose for inline onclick
-    window.editMatch = async function editMatch(id) {
-      const matches = await loadMatches();
-      const m = matches.find(x => x.id === id);
-      if (!m) return;
+    async function clearAllAdmin() {
+      alert("With proper server-side auth, 'Clear All' should be an admin-only endpoint.\nIf you want it, I’ll add /admin/clear-matches to the Worker.\nFor now, delete matches individually or ask me to add that endpoint.");
+    }
 
-      const current = getCurrentPlayer();
-      const currentName = current ? current.name : "";
-
-      // Only allow editing if you're the recorder OR admin override
-      if (m.recordedBy && currentName && m.recordedBy !== currentName) {
-        const adminOverride = verifyAdminPin((prompt("This match was logged by someone else.\nEnter ADMIN PIN to edit:") || "").trim());
-        if (!adminOverride) { alert("Not authorized."); return; }
-      }
-
-      editingId = id;
-      document.getElementById("teamAName").value = m.teamA.name;
-      document.getElementById("teamBName").value = m.teamB.name;
-      document.getElementById("teamAPlayers").value = (m.teamA.players || []).join(", ");
-      document.getElementById("teamBPlayers").value = (m.teamB.players || []).join(", ");
-      document.getElementById("teamAScore").value = m.teamA.score;
-      document.getElementById("teamBScore").value = m.teamB.score;
-      document.getElementById("location").value = m.notes;
-      document.getElementById("date").value = new Date(m.dateTime).toISOString().slice(0, 16);
-      document.getElementById("saveMatchBtn").textContent = "Update Match";
-    };
-
-    window.deleteMatch = async function deleteMatch(id) {
-      const matches = await loadMatches();
-      const m = matches.find(x => x.id === id);
-      if (!m) return;
-
-      const current = getCurrentPlayer();
-      if (!current) { alert("Select a player first."); return; }
-
-      const isOwner = !m.recordedBy || m.recordedBy === current.name;
-
-      if (isOwner) {
-        const pin = prompt(`Enter PIN for ${current.name} to delete:`) || "";
-        const ok = await verifyPlayerPin(current.name, pin.trim());
-        if (!ok) { alert("Incorrect PIN — match not deleted."); return; }
-      } else {
-        const pin = prompt("This match was logged by someone else.\nEnter ADMIN PIN to delete:") || "";
-        if (!verifyAdminPin(pin.trim())) { alert("Not authorized."); return; }
-      }
-
-      const updated = matches.filter(x => x.id !== id);
-      await saveMatches(updated);
-      renderMatches();
-    };
-
-    // -------- Main --------
     document.addEventListener("DOMContentLoaded", async () => {
-      const dateInput = document.getElementById("date");
-      const now = new Date();
-      dateInput.value = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+      updateAuthUI();
+      await renderPlayerSelect();
+      await renderMatches();
 
-      await ensureInitialPlayerSetup();
-      renderPlayerSelect();
-      renderMatches();
+      document.getElementById("signInBtn").addEventListener("click", signIn);
+      document.getElementById("signOutBtn").addEventListener("click", () => { clearSession(); renderMatches(); });
+      document.getElementById("managePlayersBtn").addEventListener("click", managePlayers);
+      document.getElementById("saveMatchBtn").addEventListener("click", saveMatch);
+      document.getElementById("clearAllBtn").addEventListener("click", clearAllAdmin);
 
-      document.getElementById("managePlayersBtn").addEventListener("click", managePlayersFlow);
-      document.getElementById("switchPlayerBtn").addEventListener("click", switchPlayerFlow);
-      document.getElementById("currentPlayer").addEventListener("change", () => {
-        document.getElementById("playerStatus").textContent = "Click Switch to confirm with PIN.";
-      });
-
-      document.getElementById("saveMatchBtn").addEventListener("click", async () => {
-        const current = getCurrentPlayer();
-        if (!current) { alert("No player selected. Ask admin to add players."); return; }
-
-        const pin = prompt(`Enter PIN for ${current.name} to save match:`) || "";
-        const ok = await verifyPlayerPin(current.name, pin.trim());
-        if (!ok) { alert("Incorrect PIN — match not saved."); return; }
-
-        const teamAName = document.getElementById("teamAName").value.trim() || "Team A";
-        const teamBName = document.getElementById("teamBName").value.trim() || "Team B";
-        const teamAPlayers = document.getElementById("teamAPlayers").value.trim();
-        const teamBPlayers = document.getElementById("teamBPlayers").value.trim();
-        const teamAScore = parseInt(document.getElementById("teamAScore").value || "0", 10);
-        const teamBScore = parseInt(document.getElementById("teamBScore").value || "0", 10);
-        const notes = document.getElementById("location").value.trim();
-        const dateTime = document.getElementById("date").value || new Date().toISOString();
-
-        const matches = await loadMatches();
-
-        const payload = {
-          dateTime,
-          recordedBy: current.name,
-          teamA: {
-            name: teamAName,
-            players: teamAPlayers ? teamAPlayers.split(",").map(p => p.trim()).filter(Boolean) : [],
-            score: teamAScore
-          },
-          teamB: {
-            name: teamBName,
-            players: teamBPlayers ? teamBPlayers.split(",").map(p => p.trim()).filter(Boolean) : [],
-            score: teamBScore
-          },
-          notes
-        };
-
-        if (editingId) {
-          const idx = matches.findIndex(x => x.id === editingId);
-          if (idx >= 0) matches[idx] = { ...matches[idx], ...payload };
-          editingId = null;
-          document.getElementById("saveMatchBtn").textContent = "Save Match";
-        } else {
-          matches.push({
-            id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(),
-            ...payload
-          });
-        }
-
-        await saveMatches(matches);
-        renderMatches();
-
-        document.getElementById("teamAName").value = "";
-        document.getElementById("teamBName").value = "";
-        document.getElementById("teamAPlayers").value = "";
-        document.getElementById("teamBPlayers").value = "";
-        document.getElementById("teamAScore").value = "";
-        document.getElementById("teamBScore").value = "";
-        document.getElementById("location").value = "";
-      });
-
-      document.getElementById("clearAllBtn").addEventListener("click", async () => {
-        const pin = prompt("Enter ADMIN PIN to clear all matches:") || "";
-        if (!verifyAdminPin(pin.trim())) { alert("Incorrect admin PIN — matches not cleared."); return; }
-        if (confirm("Are you sure you want to delete ALL matches?")) {
-          await saveMatches([]);
-          renderMatches();
-        }
+      // Enter key on PIN triggers sign-in
+      document.getElementById("pinInput").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") signIn();
       });
     });
   </script>
