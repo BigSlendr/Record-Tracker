@@ -6,160 +6,663 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
-      --accent:#38bdf8;
-      --text:#e2e8f0;
-      --muted:#94a3b8;
-      --danger:#f97316;
-      --ok:#22c55e;
-      --warn:#fbbf24;
+      --bg: #0f172a;
+      --panel: #111827;
+      --accent: #38bdf8;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --danger: #f97316;
+      --ok: #22c55e;
+      --warn: #fbbf24;
     }
-    *{box-sizing:border-box}
-    body{
-      margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-      background:radial-gradient(circle at top,#1f2937 0%,#020617 60%);
-      color:var(--text);min-height:100vh;padding:1.5rem;
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #1f2937 0%, #020617 60%);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 1.5rem;
     }
-    h1{text-align:center;margin-bottom:1rem}
-    .container{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1.6fr;gap:1.5rem}
-    .card{
-      background:rgba(2,6,23,.45);border:1px solid rgba(148,163,184,.12);
-      border-radius:1rem;padding:1rem 1.25rem 1.25rem;backdrop-filter:blur(10px)
+    h1 { text-align: center; margin-bottom: 1rem; letter-spacing: .02em; }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1.6fr;
+      gap: 1.5rem;
     }
-    label{font-size:.75rem;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);display:block;margin-bottom:.25rem}
-    input,textarea,select{
-      width:100%;background:rgba(15,23,42,.4);
-      border:1px solid rgba(148,163,184,.2);
-      border-radius:.5rem;padding:.45rem .6rem;color:var(--text)
+    .card {
+      background: rgba(2, 6, 23, 0.45);
+      border: 1px solid rgba(148, 163, 184, 0.12);
+      border-radius: 1rem;
+      padding: 1rem 1.25rem 1.25rem;
+      backdrop-filter: blur(10px);
     }
-    textarea{padding:.4rem .6rem .45rem}
-    .row{display:grid;grid-template-columns:repeat(2,1fr);gap:.65rem;margin-bottom:.65rem}
-    .team-box{
-      border:1px solid rgba(148,163,184,.2);border-radius:.75rem;
-      padding:.6rem .7rem;background:rgba(15,23,42,.3);margin-bottom:.75rem
+    label {
+      font-size: .75rem;
+      text-transform: uppercase;
+      letter-spacing: .03em;
+      color: var(--muted);
+      display: block;
+      margin-bottom: .25rem;
     }
-    .team-title{font-weight:800;margin-bottom:.35rem}
-    button{
-      background:var(--accent);border:none;border-radius:.5rem;
-      padding:.5rem .75rem;color:#0f172a;font-weight:800;cursor:pointer
+    input, textarea, select {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.4);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: .5rem;
+      padding: .45rem .6rem;
+      color: var(--text);
+      outline: none;
+      font-size: .85rem;
     }
-    button.secondary{background:rgba(148,163,184,.15);color:#fff;border:1px solid rgba(148,163,184,.25)}
-    button.danger{background:rgba(249,115,22,.15);color:#fff;border:1px solid rgba(249,115,22,.5)}
-    button:disabled{opacity:.45}
-    .actions{display:flex;gap:.4rem;flex-wrap:wrap}
-    table{width:100%;border-collapse:collapse;margin-top:.5rem;font-size:.78rem}
-    th,td{border-bottom:1px solid rgba(148,163,184,.1);padding:.35rem}
-    th{font-size:.7rem;text-transform:uppercase;color:var(--muted)}
-    .score-badge{
-      background:rgba(56,189,248,.15);border:1px solid rgba(56,189,248,.3);
-      padding:.15rem .4rem;border-radius:.35rem;font-weight:800;font-size:.68rem
+    textarea { padding: .4rem .6rem .45rem; }
+    input:focus, textarea:focus, select:focus { border-color: var(--accent); }
+    .row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; margin-bottom: .65rem; }
+    .team-box {
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: .75rem;
+      padding: .6rem .7rem .7rem;
+      background: rgba(15, 23, 42, 0.3);
+      margin-bottom: .75rem;
     }
-    .lb-row{display:grid;grid-template-columns:1.2fr .6fr .6fr .6fr .6fr;gap:10px;padding:6px 0}
-    .lb-row+.lb-row{border-top:1px solid rgba(148,163,184,.1)}
-    .lb-head{color:var(--muted);font-size:.8rem}
-    .summary-bar{
-      display:flex;gap:10px;align-items:center;flex-wrap:wrap;
-      background:rgba(2,6,23,.35);border:1px dashed rgba(148,163,184,.25);
-      padding:8px 10px;border-radius:10px;margin-top:6px
+    .team-title { font-weight: 800; margin-bottom: .35rem; }
+    button {
+      background: var(--accent);
+      border: none;
+      border-radius: .5rem;
+      padding: .5rem .75rem;
+      color: #0f172a;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
     }
-    .pill{display:inline-flex;gap:8px;border:1px solid rgba(148,163,184,.25);border-radius:999px;padding:6px 10px}
-    .pill .val{font-weight:900}
-    .hint{color:var(--muted);font-size:.75rem}
-    @media(max-width:960px){.container{grid-template-columns:1fr}}
+    button.secondary {
+      background: rgba(148, 163, 184, 0.15);
+      color: #fff;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+    }
+    button.danger {
+      background: rgba(249, 115, 22, 0.15);
+      color: #fff;
+      border: 1px solid rgba(249, 115, 22, 0.5);
+    }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+    .actions { display:flex; gap:.4rem; flex-wrap:wrap; align-items:center; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: .5rem; }
+    table { width: 100%; border-collapse: collapse; margin-top: .5rem; font-size: .78rem; }
+    th, td {
+      border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+      padding: .35rem .35rem .45rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { font-size: .7rem; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); }
+    .score-badge {
+      display: inline-block;
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: .15rem .4rem;
+      border-radius: .35rem;
+      font-weight: 800;
+      font-size: .68rem;
+    }
+    .empty { text-align: center; color: var(--muted); padding: 1rem 0 0.3rem; font-size: .8rem; }
+    .lb-row { display: grid; grid-template-columns: 1.2fr .6fr .6fr .6fr .6fr; gap: 10px; padding: 6px 0; }
+    .lb-row + .lb-row { border-top: 1px solid rgba(148,163,184,.1); }
+    .lb-head { color: var(--muted); font-size:.8rem; }
+    .summary-bar {
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+      background: rgba(2,6,23,.35);
+      border: 1px dashed rgba(148,163,184,.25);
+      padding: 8px 10px;
+      border-radius: 10px;
+      margin-top: 6px;
+    }
+    .pill { display:inline-flex; align-items: baseline; gap:8px; border:1px solid rgba(148,163,184,.25); border-radius: 999px; padding: 6px 10px; }
+    .pill .val { font-weight: 900; }
+    .hint { color: var(--muted); font-size: .75rem; margin: .25rem 0 0; }
+    .tiny { color: var(--muted); font-size: .72rem; }
+    .ok { color: var(--ok); }
+    .warn { color: var(--warn); }
+    @media (max-width: 960px) { .container { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
-<h1>Cornhole Match Tracker 🟦🟧</h1>
+  <h1>Cornhole Match Tracker 🟦🟧</h1>
 
-<div class="container">
-  <div class="card">
-    <h2>New Match</h2>
+  <div class="container">
+    <!-- Entry -->
+    <div class="card">
+      <h2 style="margin-top:0;">New Match</h2>
+      <p class="tiny" style="margin-top:-.3rem;margin-bottom:.75rem;">Quick entry: players + score. Date/time is saved automatically.</p>
 
-    <div class="team-box">
-      <div class="team-title">Sign In</div>
+      <div class="team-box">
+        <div class="team-title">Sign In</div>
+        <div class="row" style="margin-bottom:.5rem;">
+          <div>
+            <label for="playerSelect">Player</label>
+            <select id="playerSelect"></select>
+          </div>
+          <div>
+            <label for="pinInput">PIN</label>
+            <input id="pinInput" type="password" inputmode="numeric" placeholder="Enter your PIN" />
+          </div>
+        </div>
+        <div class="actions">
+          <button id="signInBtn" type="button">Unlock</button>
+          <button id="signOutBtn" type="button" class="secondary" style="display:none;">Sign Out</button>
+          <button id="reloadPlayersBtn" type="button" class="secondary">Reload Players</button>
+          <button id="createProfileBtn" type="button" class="secondary">Create Player Profile</button>
+          <button id="managePlayersBtn" type="button" class="danger">Manage Players (Admin)</button>
+        </div>
+        <div id="authStatus" class="hint">Not signed in.</div>
+        <div class="hint tiny">API: <span id="apiStatus" class="warn">checking…</span></div>
+        <div class="hint tiny">PIN rules: 4–8 digits.</div>
+      </div>
+
       <div class="row">
         <div>
-          <label>Player</label>
-          <select id="playerSelect"></select>
+          <label for="teamAPlayers">Team A Players</label>
+          <textarea id="teamAPlayers" rows="2" placeholder="Mike, Jess"></textarea>
         </div>
         <div>
-          <label>PIN</label>
-          <input id="pinInput" type="password" inputmode="numeric">
+          <label for="teamBPlayers">Team B Players</label>
+          <textarea id="teamBPlayers" rows="2" placeholder="Chris, Sam"></textarea>
         </div>
       </div>
-      <div class="actions">
-        <button id="signInBtn">Unlock</button>
-        <button id="createProfileBtn" class="secondary">Create Player Profile</button>
-        <button id="managePlayersBtn" class="danger">Manage Players (Admin)</button>
+
+      <div class="row">
+        <div>
+          <label for="teamAScore">Team A Score</label>
+          <input type="number" id="teamAScore" min="0" max="21" placeholder="21" />
+        </div>
+        <div>
+          <label for="teamBScore">Team B Score</label>
+          <input type="number" id="teamBScore" min="0" max="21" placeholder="15" />
+        </div>
       </div>
-      <div id="authStatus" class="hint">Not signed in.</div>
+
+      <div class="actions">
+        <button id="saveMatchBtn" type="button">Save Match</button>
+      </div>
+
+      <p class="hint">Tip: you can edit/delete only matches you logged (admin can override).</p>
     </div>
 
-    <div class="row">
-      <div><label>Team A Players</label><textarea id="teamAPlayers"></textarea></div>
-      <div><label>Team B Players</label><textarea id="teamBPlayers"></textarea></div>
+    <!-- History / Leaderboards -->
+    <div class="card">
+      <div class="topbar">
+        <h2 style="margin:0;">Match History</h2>
+        <small id="matchCount" style="color:var(--muted);"></small>
+      </div>
+
+      <table>
+        <thead>
+          <tr><th>Date</th><th>Teams / Players</th><th>Score</th><th>Logged By</th><th>Actions</th></tr>
+        </thead>
+        <tbody id="historyBody"></tbody>
+      </table>
+
+      <div id="emptyState" class="empty" style="display:none;">No matches yet — add your first one!</div>
+
+      <div class="summary-bar">
+        <div class="pill"><span class="val" id="totalMatches">0</span> <span class="muted">Total Matches Played</span></div>
+      </div>
+
+      <h2 style="margin:10px 0 0">Individual Leaderboard</h2>
+      <div class="lb lb-head lb-row"><div>Player</div><div>Wins</div><div>Losses</div><div>Games</div><div>Win %</div></div>
+      <div id="lbIndividuals"></div>
+
+      <h2 style="margin:14px 0 0">Team Leaderboard</h2>
+      <div class="lb lb-head lb-row"><div>Team (members)</div><div>Wins</div><div>Losses</div><div>Games</div><div>Win %</div></div>
+      <div id="lbTeams"></div>
     </div>
-    <div class="row">
-      <div><label>Team A Score</label><input id="teamAScore" type="number"></div>
-      <div><label>Team B Score</label><input id="teamBScore" type="number"></div>
-    </div>
-    <button id="saveMatchBtn">Save Match</button>
   </div>
 
-  <div class="card">
-    <h2>Match History</h2>
-    <table>
-      <thead>
-        <tr><th>Date</th><th>Teams</th><th>Score</th><th>By</th></tr>
-      </thead>
-      <tbody id="historyBody"></tbody>
-    </table>
+  <script>
+    // Your Worker URL
+    const API = "https://solitary-moon-7578.michaelamarino16.workers.dev";
 
-    <div class="summary-bar">
-      <div class="pill"><span class="val" id="totalMatches">0</span> Matches</div>
-    </div>
+    // Local session
+    const LS_TOKEN = "ct_device_token_v1";
+    const LS_PLAYER = "ct_player_v1";
 
-    <h2>Individual Leaderboard</h2>
-    <div class="lb lb-head lb-row"><div>Player</div><div>W</div><div>L</div><div>G</div><div>%</div></div>
-    <div id="lbIndividuals"></div>
+    let editingId = null;
 
-    <h2>Team Leaderboard</h2>
-    <div class="lb lb-head lb-row"><div>Team</div><div>W</div><div>L</div><div>G</div><div>%</div></div>
-    <div id="lbTeams"></div>
-  </div>
-</div>
+    function isValidPin(pin) {
+      return /^[0-9]{4,8}$/.test(pin || "");
+    }
 
-<script>
-const API="https://solitary-moon-7578.michaelamarino16.workers.dev";
-const LS_TOKEN="ct_token",LS_PLAYER="ct_player";
+    function getSession() {
+      const token = localStorage.getItem(LS_TOKEN) || "";
+      let player = null;
+      try { player = JSON.parse(localStorage.getItem(LS_PLAYER) || "null"); } catch {}
+      return { token, player };
+    }
 
-const api=(p,o={})=>{
-  const t=localStorage.getItem(LS_TOKEN);
-  return fetch(API+p,{
-    ...o,
-    headers:{'Content-Type':'application/json',...(t?{'Authorization':'Bearer '+t}:{})}
-  }).then(r=>r.json());
-};
+    function setSession(token, player) {
+      localStorage.setItem(LS_TOKEN, token);
+      localStorage.setItem(LS_PLAYER, JSON.stringify(player));
+      updateAuthUI();
+    }
 
-const normalize=p=>p.trim();
-const teamLabel=players=>players.map(normalize).sort().join(" + ")||"Unknown Team";
+    function clearSession() {
+      localStorage.removeItem(LS_TOKEN);
+      localStorage.removeItem(LS_PLAYER);
+      updateAuthUI();
+    }
 
-function calcLeaderboards(matches){
-  const indiv=new Map(),teams=new Map();
-  const ensure=(m,n)=>{const k=n.toLowerCase();if(!m.has(k))m.set(k,{name:n,wins:0,losses:0,games:0});return m.get(k)};
-  for(const m of matches){
-    const a=m.teamA.players||[],b=m.teamB.players||[];
-    const aN=teamLabel(a),bN=teamLabel(b);
-    const win=m.teamA.score>m.teamB.score?"A":m.teamB.score>m.teamA.score?"B":"T";
-    a.forEach(p=>ensure(indiv,p).games++);
-    b.forEach(p=>ensure(indiv,p).games++);
-    ensure(teams,aN).games++;ensure(teams,bN).games++;
-    if(win==="A"){a.forEach(p=>ensure(indiv,p).wins++);b.forEach(p=>ensure(indiv,p).losses++);ensure(teams,aN).wins++;ensure(teams,bN).losses++;}
-    if(win==="B"){b.forEach(p=>ensure(indiv,p).wins++);a.forEach(p=>ensure(indiv,p).losses++);ensure(teams,bN).wins++;ensure(teams,aN).losses++;}
-  }
-  const arr=m=>[...m.values()].map(x=>({...x,winpct:x.games?Math.round(x.wins/x.games*100):0}))
-    .sort((a,b)=>b.wins-a.wins||b.winpct-a.winpct||a.name.localeCompare(b.name));
-  return{indivArr:arr(indiv),teamArr:arr(teams)};
-}
-</script>
+    async function api(path, opts = {}) {
+      const { token } = getSession();
+      const headers = { "Content-Type": "application/json", ...(opts.headers || {}) };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
+      const res = await fetch(`${API}${path}`, { ...opts, headers });
+
+      const ct = res.headers.get("content-type") || "";
+      const isJson = ct.includes("application/json");
+      const data = isJson ? await res.json() : await res.text();
+
+      if (!res.ok) {
+        const msg = (data && data.error) ? data.error : (typeof data === "string" ? data : `HTTP ${res.status}`);
+        throw new Error(msg);
+      }
+      return data;
+    }
+
+    async function checkApiHealth() {
+      const el = document.getElementById("apiStatus");
+      try {
+        const data = await api("/players", { method: "GET" });
+        const count = data.players ? data.players.length : 0;
+        el.textContent = `ok (players: ${count})`;
+        el.classList.remove("warn"); el.classList.add("ok");
+      } catch (e) {
+        el.textContent = `error: ${e.message}`;
+        el.classList.remove("ok"); el.classList.add("warn");
+      }
+    }
+
+    async function loadPlayers() {
+      const data = await api("/players", { method: "GET" });
+      return data.players || [];
+    }
+
+    async function loadMatches() {
+      // Worker returns an array
+      return await api("/matches", { method: "GET" });
+    }
+
+    // ----- Leaderboards -----
+    function calcLeaderboards(matches) {
+      const indiv = new Map();
+      const teams = new Map();
+
+      const normalizePlayer = (p) => (p || "").trim();
+      const teamLabel = (players) => {
+        const cleaned = (players || [])
+          .map(normalizePlayer)
+          .filter(Boolean)
+          .sort((a, b) => a.localeCompare(b));
+        return cleaned.length ? cleaned.join(" + ") : "Unknown Team";
+      };
+
+      const ensure = (map, name) => {
+        const key = name.toLowerCase();
+        if (!map.has(key)) map.set(key, { name, wins: 0, losses: 0, games: 0 });
+        return map.get(key);
+      };
+
+      for (const m of matches) {
+        const a = +m.teamA.score || 0;
+        const b = +m.teamB.score || 0;
+        const win = a > b ? "A" : b > a ? "B" : "TIE";
+
+        const aP = (m.teamA.players || []).map(normalizePlayer).filter(Boolean);
+        const bP = (m.teamB.players || []).map(normalizePlayer).filter(Boolean);
+
+        const aTeamName = teamLabel(aP);
+        const bTeamName = teamLabel(bP);
+
+        for (const p of aP) ensure(indiv, p).games++;
+        for (const p of bP) ensure(indiv, p).games++;
+        ensure(teams, aTeamName).games++;
+        ensure(teams, bTeamName).games++;
+
+        if (win === "A") {
+          for (const p of aP) ensure(indiv, p).wins++;
+          for (const p of bP) ensure(indiv, p).losses++;
+          ensure(teams, aTeamName).wins++;
+          ensure(teams, bTeamName).losses++;
+        } else if (win === "B") {
+          for (const p of bP) ensure(indiv, p).wins++;
+          for (const p of aP) ensure(indiv, p).losses++;
+          ensure(teams, bTeamName).wins++;
+          ensure(teams, aTeamName).losses++;
+        }
+      }
+
+      const arr = (m) => Array.from(m.values())
+        .map(x => ({ ...x, winpct: x.games ? ((x.wins / x.games) * 100).toFixed(0) : 0 }))
+        .sort((a, b) => b.wins - a.wins || b.winpct - a.winpct || a.name.localeCompare(b.name));
+
+      return { indivArr: arr(indiv), teamArr: arr(teams) };
+    }
+
+    // ----- UI helpers -----
+    function updateAuthUI() {
+      const { token, player } = getSession();
+      const status = document.getElementById("authStatus");
+      const pinInput = document.getElementById("pinInput");
+      const signOutBtn = document.getElementById("signOutBtn");
+
+      if (token && player) {
+        status.textContent = `Signed in as ${player.name}${player.isAdmin ? " (Admin)" : ""}.`;
+        pinInput.value = "";
+        pinInput.placeholder = "Unlocked";
+        pinInput.disabled = true;
+        signOutBtn.style.display = "inline-block";
+      } else {
+        status.textContent = "Not signed in.";
+        pinInput.disabled = false;
+        pinInput.placeholder = "Enter your PIN";
+        signOutBtn.style.display = "none";
+      }
+    }
+
+    async function renderPlayerSelect() {
+      const sel = document.getElementById("playerSelect");
+      sel.innerHTML = "";
+
+      const players = await loadPlayers();
+
+      if (!players.length) {
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "No players found (create a profile)";
+        sel.appendChild(opt);
+        return;
+      }
+
+      for (const p of players) {
+        const opt = document.createElement("option");
+        opt.value = p.key;
+        opt.textContent = p.name + (p.isAdmin ? " (Admin)" : "");
+        sel.appendChild(opt);
+      }
+
+      // restore selection if signed in
+      const session = getSession();
+      if (session.player?.key && players.some(p => p.key === session.player.key)) {
+        sel.value = session.player.key;
+      }
+    }
+
+    // ----- Auth -----
+    async function signIn() {
+      const sel = document.getElementById("playerSelect");
+      const pin = (document.getElementById("pinInput").value || "").trim();
+
+      if (!sel.value) { alert("Pick a player first."); return; }
+      if (!pin) { alert("Enter your PIN."); return; }
+      if (!isValidPin(pin)) { alert("PIN must be 4–8 digits."); return; }
+
+      const players = await loadPlayers();
+      const picked = players.find(p => p.key === sel.value);
+      if (!picked) { alert("Player not found."); return; }
+
+      const data = await api("/auth/pin", {
+        method: "POST",
+        body: JSON.stringify({ name: picked.name, pin })
+      });
+
+      setSession(data.token, data.player);
+      await renderMatches();
+    }
+
+    // ----- Create profile (invite code required every time) -----
+    async function createPlayerProfile() {
+      const inviteCode = (prompt("Invite code to create a player profile:") || "").trim();
+      if (!inviteCode) return;
+
+      const name = (prompt("Your unique player name:") || "").trim();
+      if (!name) return;
+
+      const pin = (prompt(`Choose a PIN for ${name} (4–8 digits):`) || "").trim();
+      if (!pin) return;
+      if (!isValidPin(pin)) { alert("PIN must be 4–8 digits."); return; }
+
+      await api("/profile/create", {
+        method: "POST",
+        body: JSON.stringify({ name, pin, createPin: inviteCode })
+      });
+
+      alert(`Profile created for: ${name}\nNow select your name and Unlock with your PIN.`);
+      await renderPlayerSelect();
+      await checkApiHealth();
+    }
+
+    // ----- Admin manage -----
+    async function managePlayersAdmin() {
+      const adminPin = (prompt("Admin PIN to manage players:") || "").trim();
+      if (!adminPin) return;
+
+      const action = prompt(
+        "Admin: Manage Players\n" +
+        "1 = Reset player PIN\n" +
+        "2 = Remove player\n" +
+        "3 = Set / Unset Admin\n\n" +
+        "Cancel to exit."
+      );
+      if (!action) return;
+
+      if (action === "1") {
+        const name = (prompt("Player name to reset:") || "").trim();
+        if (!name) return;
+        const newPin = (prompt(`New PIN for ${name} (4–8 digits):`) || "").trim();
+        if (!newPin) return;
+        if (!isValidPin(newPin)) { alert("PIN must be 4–8 digits."); return; }
+
+        await api("/admin/player", {
+          method: "POST",
+          body: JSON.stringify({ adminPin, action: "reset", name, newPin })
+        });
+        alert(`Reset PIN for: ${name}`);
+      } else if (action === "2") {
+        const name = (prompt("Player name to remove:") || "").trim();
+        if (!name) return;
+        if (!confirm(`Remove ${name}?`)) return;
+
+        await api("/admin/player", {
+          method: "POST",
+          body: JSON.stringify({ adminPin, action: "remove", name })
+        });
+        alert(`Removed: ${name}`);
+      } else if (action === "3") {
+        const name = (prompt("Player name to update admin status:") || "").trim();
+        if (!name) return;
+        const yn = (prompt("Make admin? Type YES to grant admin, NO to remove admin:") || "").trim().toUpperCase();
+        if (yn !== "YES" && yn !== "NO") { alert("Please type YES or NO."); return; }
+
+        await api("/admin/player", {
+          method: "POST",
+          body: JSON.stringify({ adminPin, action: "setAdmin", name, makeAdmin: yn === "YES" })
+        });
+        alert(`Updated admin status for: ${name}`);
+      } else {
+        alert("Unknown action.");
+        return;
+      }
+
+      await renderPlayerSelect();
+      await checkApiHealth();
+    }
+
+    // ----- Matches -----
+    async function saveMatch() {
+      const session = getSession();
+      if (!session.token || !session.player) {
+        alert("Sign in first.");
+        return;
+      }
+
+      const aPlayersRaw = (document.getElementById("teamAPlayers").value || "").trim();
+      const bPlayersRaw = (document.getElementById("teamBPlayers").value || "").trim();
+      const aScore = parseInt(document.getElementById("teamAScore").value || "", 10);
+      const bScore = parseInt(document.getElementById("teamBScore").value || "", 10);
+
+      if (!aPlayersRaw || !bPlayersRaw) { alert("Enter players for both teams (comma-separated)."); return; }
+      if (!Number.isFinite(aScore) || !Number.isFinite(bScore)) { alert("Enter both scores."); return; }
+
+      const payload = {
+        teamA: { name: "Team A", players: aPlayersRaw.split(",").map(x => x.trim()).filter(Boolean), score: aScore },
+        teamB: { name: "Team B", players: bPlayersRaw.split(",").map(x => x.trim()).filter(Boolean), score: bScore }
+      };
+
+      if (!editingId) {
+        await api("/matches", { method: "POST", body: JSON.stringify(payload) });
+      } else {
+        await api(`/matches/${encodeURIComponent(editingId)}`, { method: "PUT", body: JSON.stringify(payload) });
+        editingId = null;
+        document.getElementById("saveMatchBtn").textContent = "Save Match";
+      }
+
+      document.getElementById("teamAPlayers").value = "";
+      document.getElementById("teamBPlayers").value = "";
+      document.getElementById("teamAScore").value = "";
+      document.getElementById("teamBScore").value = "";
+
+      await renderMatches();
+    }
+
+    async function renderMatches() {
+      const matches = await loadMatches();
+      const tbody = document.getElementById("historyBody");
+      tbody.innerHTML = "";
+
+      document.getElementById("totalMatches").textContent = matches.length;
+      document.getElementById("matchCount").textContent = `${matches.length} match${matches.length === 1 ? "" : "es"}`;
+      document.getElementById("emptyState").style.display = matches.length ? "none" : "block";
+
+      matches.sort((a, b) => new Date(b.dateTime) - new Date(a.dateTime));
+
+      const session = getSession();
+      const meKey = session.player?.key || "";
+      const isAdmin = !!session.player?.isAdmin;
+
+      for (const m of matches) {
+        const d = new Date(m.dateTime);
+        const canEdit = isAdmin || (meKey && m.recordedByKey === meKey);
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${d.toLocaleString()}</td>
+          <td>
+            <div><strong>Team A</strong> <small style="color:#94a3b8">(${(m.teamA.players||[]).join(", ")||"—"})</small></div>
+            <div><strong>Team B</strong> <small style="color:#94a3b8">(${(m.teamB.players||[]).join(", ")||"—"})</small></div>
+          </td>
+          <td><span class="score-badge">${m.teamA.score} - ${m.teamB.score}</span></td>
+          <td>${m.recordedBy || "—"}</td>
+          <td class="actions">
+            <button class="secondary" ${canEdit ? "" : "disabled"} data-edit="${m.id}">Edit</button>
+            <button class="danger" ${canEdit ? "" : "disabled"} data-del="${m.id}">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      }
+
+      tbody.querySelectorAll("button[data-edit]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          if (btn.disabled) return;
+          const id = btn.getAttribute("data-edit");
+          const all = await loadMatches();
+          const m = all.find(x => x.id === id);
+          if (!m) return;
+
+          editingId = id;
+          document.getElementById("teamAPlayers").value = (m.teamA.players || []).join(", ");
+          document.getElementById("teamBPlayers").value = (m.teamB.players || []).join(", ");
+          document.getElementById("teamAScore").value = m.teamA.score;
+          document.getElementById("teamBScore").value = m.teamB.score;
+          document.getElementById("saveMatchBtn").textContent = "Update Match";
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+      });
+
+      tbody.querySelectorAll("button[data-del]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          if (btn.disabled) return;
+          const id = btn.getAttribute("data-del");
+          if (!confirm("Delete this match?")) return;
+          await api(`/matches/${encodeURIComponent(id)}`, { method: "DELETE" });
+          await renderMatches();
+        });
+      });
+
+      const { indivArr, teamArr } = calcLeaderboards(matches);
+      const lbI = document.getElementById("lbIndividuals");
+      const lbT = document.getElementById("lbTeams");
+      lbI.innerHTML = ""; lbT.innerHTML = "";
+
+      for (const r of indivArr) {
+        lbI.innerHTML += `<div class="lb-row"><div>${r.name}</div><div>${r.wins}</div><div>${r.losses}</div><div>${r.games}</div><div>${r.winpct}%</div></div>`;
+      }
+      for (const r of teamArr) {
+        lbT.innerHTML += `<div class="lb-row"><div>${r.name}</div><div>${r.wins}</div><div>${r.losses}</div><div>${r.games}</div><div>${r.winpct}%</div></div>`;
+      }
+    }
+
+    // ----- Startup -----
+    document.addEventListener("DOMContentLoaded", async () => {
+      updateAuthUI();
+
+      document.getElementById("signInBtn").addEventListener("click", async () => {
+        try { await signIn(); }
+        catch (e) { alert("Sign in failed: " + e.message); console.error(e); }
+      });
+
+      document.getElementById("signOutBtn").addEventListener("click", async () => {
+        clearSession();
+        await renderMatches();
+      });
+
+      document.getElementById("reloadPlayersBtn").addEventListener("click", async () => {
+        try {
+          await renderPlayerSelect();
+          await checkApiHealth();
+          alert("Players refreshed.");
+        } catch (e) {
+          alert("Reload players failed: " + e.message);
+        }
+      });
+
+      document.getElementById("createProfileBtn").addEventListener("click", async () => {
+        try { await createPlayerProfile(); }
+        catch (e) { alert("Create profile failed: " + e.message); console.error(e); }
+      });
+
+      document.getElementById("managePlayersBtn").addEventListener("click", async () => {
+        try { await managePlayersAdmin(); }
+        catch (e) { alert("Admin manage failed: " + e.message); console.error(e); }
+      });
+
+      document.getElementById("saveMatchBtn").addEventListener("click", async () => {
+        try { await saveMatch(); }
+        catch (e) { alert("Save failed: " + e.message); console.error(e); }
+      });
+
+      document.getElementById("pinInput").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") document.getElementById("signInBtn").click();
+      });
+
+      try { await renderPlayerSelect(); } catch (e) { /* handled by alerts */ }
+      await checkApiHealth();
+
+      try { await renderMatches(); }
+      catch (e) { alert("Could not load matches: " + e.message); }
+    });
+  </script>
 </body>
 </html>
