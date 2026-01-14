@@ -12,6 +12,7 @@
       --text: #e2e8f0;
       --muted: #94a3b8;
       --danger: #f97316;
+      --ok: #22c55e;
     }
     * { box-sizing: border-box; }
     body {
@@ -65,14 +66,14 @@
       background: rgba(15, 23, 42, 0.3);
       margin-bottom: .75rem;
     }
-    .team-title { font-weight: 700; margin-bottom: .35rem; }
+    .team-title { font-weight: 800; margin-bottom: .35rem; }
     button {
       background: var(--accent);
       border: none;
       border-radius: .5rem;
       padding: .5rem .75rem;
       color: #0f172a;
-      font-weight: 700;
+      font-weight: 800;
       cursor: pointer;
       white-space: nowrap;
     }
@@ -86,7 +87,11 @@
       color: #fff;
       border: 1px solid rgba(148, 163, 184, 0.25);
     }
-    .actions { display:flex; gap:.4rem; flex-wrap:wrap; }
+    button:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+    .actions { display:flex; gap:.4rem; flex-wrap:wrap; align-items:center; }
     .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: .5rem; }
     table { width: 100%; border-collapse: collapse; margin-top: .5rem; font-size: .78rem; }
     th, td {
@@ -102,7 +107,7 @@
       border: 1px solid rgba(56, 189, 248, 0.3);
       padding: .15rem .4rem;
       border-radius: .35rem;
-      font-weight: 700;
+      font-weight: 800;
       font-size: .68rem;
     }
     .empty { text-align: center; color: var(--muted); padding: 1rem 0 0.3rem; font-size: .8rem; }
@@ -121,6 +126,8 @@
     .pill .val { font-weight: 900; }
     .hint { color: var(--muted); font-size: .75rem; margin: .25rem 0 0; }
     .tiny { color: var(--muted); font-size: .72rem; }
+    .ok { color: var(--ok); }
+    .warn { color: #fbbf24; }
     @media (max-width: 960px) { .container { grid-template-columns: 1fr; } }
   </style>
 </head>
@@ -132,7 +139,7 @@
     <div class="card">
       <h2 style="margin-top:0;">New Match</h2>
       <p class="tiny" style="margin-top:-.3rem; margin-bottom:.75rem;">
-        Quick entry: teams/players + score. Date/time is saved automatically.
+        Quick entry: players + score. Date/time is saved automatically.
       </p>
 
       <!-- Sign In -->
@@ -151,9 +158,11 @@
         <div class="actions">
           <button id="signInBtn" type="button">Unlock</button>
           <button id="signOutBtn" type="button" class="secondary" style="display:none;">Sign Out</button>
+          <button id="reloadPlayersBtn" type="button" class="secondary">Reload Players</button>
           <button id="managePlayersBtn" type="button" class="danger">Manage Players</button>
         </div>
         <div id="authStatus" class="hint">Not signed in.</div>
+        <div class="hint tiny">API: <span id="apiStatus" class="warn">checking…</span></div>
       </div>
 
       <div class="row">
@@ -180,10 +189,10 @@
 
       <div class="actions">
         <button id="saveMatchBtn" type="button">Save Match</button>
-        <button id="clearAllBtn" type="button" class="danger" style="margin-left:auto;">Clear All (Admin)</button>
+        <button id="clearAllBtn" type="button" class="danger" style="margin-left:auto;" disabled>Clear All (Admin)</button>
       </div>
 
-      <p class="hint">Tip: you can edit/delete only matches you logged (admin can override).</p>
+      <p class="hint">Tip: only the person who logged a match (or admin) can edit/delete it.</p>
     </div>
 
     <!-- History & Leaderboards -->
@@ -216,6 +225,7 @@
   </div>
 
   <script>
+    // IMPORTANT: ensure this matches your actual Worker URL
     const API = "https://solitary-moon-7578.michaelamarino16.workers.dev";
 
     // Local session storage
@@ -247,11 +257,33 @@
       const { token } = getSession();
       const headers = { "Content-Type": "application/json", ...(opts.headers || {}) };
       if (token) headers["Authorization"] = `Bearer ${token}`;
+
       const res = await fetch(`${API}${path}`, { ...opts, headers });
-      const isJson = (res.headers.get("content-type") || "").includes("application/json");
+
+      const ct = res.headers.get("content-type") || "";
+      const isJson = ct.includes("application/json");
       const data = isJson ? await res.json() : await res.text();
-      if (!res.ok) throw new Error(data?.error || data || `HTTP ${res.status}`);
+
+      if (!res.ok) {
+        const msg = (data && data.error) ? data.error : (typeof data === "string" ? data : `HTTP ${res.status}`);
+        throw new Error(msg);
+      }
       return data;
+    }
+
+    async function checkApiHealth() {
+      const el = document.getElementById("apiStatus");
+      try {
+        const data = await api("/players", { method: "GET" });
+        const count = data.players ? data.players.length : 0;
+        el.textContent = `ok (players: ${count})`;
+        el.classList.remove("warn");
+        el.classList.add("ok");
+      } catch (e) {
+        el.textContent = `error: ${e.message}`;
+        el.classList.remove("ok");
+        el.classList.add("warn");
+      }
     }
 
     async function loadPlayers() {
@@ -263,7 +295,6 @@
       return await api("/matches", { method: "GET" });
     }
 
-    // Leaderboards (same logic, based on players in team arrays)
     function calcLeaderboards(matches) {
       const indiv = new Map(), teams = new Map();
       for (const m of matches) {
@@ -311,6 +342,7 @@
       const status = document.getElementById("authStatus");
       const pinInput = document.getElementById("pinInput");
       const signOutBtn = document.getElementById("signOutBtn");
+      const clearAllBtn = document.getElementById("clearAllBtn");
 
       if (token && player) {
         status.textContent = `Signed in as ${player.name}${player.isAdmin ? " (Admin)" : ""}.`;
@@ -318,18 +350,30 @@
         pinInput.placeholder = "Unlocked";
         pinInput.disabled = true;
         signOutBtn.style.display = "inline-block";
+        clearAllBtn.disabled = !player.isAdmin;
       } else {
         status.textContent = "Not signed in.";
         pinInput.disabled = false;
         pinInput.placeholder = "Enter your PIN";
         signOutBtn.style.display = "none";
+        clearAllBtn.disabled = true;
       }
     }
 
     async function renderPlayerSelect() {
-      const players = await loadPlayers();
       const sel = document.getElementById("playerSelect");
       sel.innerHTML = "";
+
+      let players = [];
+      try {
+        players = await loadPlayers();
+      } catch (e) {
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "Error loading players";
+        sel.appendChild(opt);
+        throw e;
+      }
 
       if (!players.length) {
         const opt = document.createElement("option");
@@ -359,8 +403,7 @@
       if (!sel.value) { alert("Pick a player first."); return; }
       if (!pin) { alert("Enter your PIN."); return; }
 
-      // Need name, not key, for the worker auth endpoint.
-      // We'll map key->name by fetching players again (fast and simple).
+      // Map key -> name by fetching players list
       const players = await loadPlayers();
       const picked = players.find(p => p.key === sel.value);
       if (!picked) { alert("Player not found."); return; }
@@ -391,7 +434,7 @@
       let newPin = "";
 
       if (action === "1") {
-        name = (prompt("New player name:") || "").trim();
+        name = (prompt("New player name (unique):") || "").trim();
         newPin = (prompt(`Set a PIN for ${name}:`) || "").trim();
         if (!name || !newPin) return;
 
@@ -399,7 +442,7 @@
           method: "POST",
           body: JSON.stringify({ adminPin, action: "add", name, newPin })
         });
-        alert("Player added.");
+        alert(`Added player: ${name}`);
       } else if (action === "2") {
         name = (prompt("Player name to reset:") || "").trim();
         newPin = (prompt(`New PIN for ${name}:`) || "").trim();
@@ -409,7 +452,7 @@
           method: "POST",
           body: JSON.stringify({ adminPin, action: "reset", name, newPin })
         });
-        alert("PIN reset.");
+        alert(`Reset PIN for: ${name}`);
       } else if (action === "3") {
         name = (prompt("Player name to remove:") || "").trim();
         if (!name) return;
@@ -420,13 +463,15 @@
           method: "POST",
           body: JSON.stringify({ adminPin, action: "remove", name })
         });
-        alert("Player removed.");
+        alert(`Removed: ${name}`);
       } else {
         alert("Unknown action.");
         return;
       }
 
+      // Force refresh player list after any change
       await renderPlayerSelect();
+      await checkApiHealth();
     }
 
     async function saveMatch() {
@@ -535,8 +580,12 @@
           if (btn.disabled) return;
           const id = btn.getAttribute("data-del");
           if (!confirm("Delete this match?")) return;
-          await api(`/matches/${encodeURIComponent(id)}`, { method: "DELETE" });
-          await renderMatches();
+          try {
+            await api(`/matches/${encodeURIComponent(id)}`, { method: "DELETE" });
+            await renderMatches();
+          } catch (e) {
+            alert("Delete failed: " + e.message);
+          }
         });
       });
 
@@ -555,24 +604,62 @@
     }
 
     async function clearAllAdmin() {
-      alert("With proper server-side auth, 'Clear All' should be an admin-only endpoint.\nIf you want it, I’ll add /admin/clear-matches to the Worker.\nFor now, delete matches individually or ask me to add that endpoint.");
+      alert("Your Worker currently does not have an admin 'clear all matches' endpoint.\n\nIf you want it, tell me and I’ll add: POST /admin/clear-matches\n(secured by ADMIN_PIN).");
     }
 
     document.addEventListener("DOMContentLoaded", async () => {
       updateAuthUI();
-      await renderPlayerSelect();
-      await renderMatches();
 
-      document.getElementById("signInBtn").addEventListener("click", signIn);
-      document.getElementById("signOutBtn").addEventListener("click", () => { clearSession(); renderMatches(); });
-      document.getElementById("managePlayersBtn").addEventListener("click", managePlayers);
-      document.getElementById("saveMatchBtn").addEventListener("click", saveMatch);
+      // Wire buttons (with error surfacing)
+      document.getElementById("signInBtn").addEventListener("click", async () => {
+        try { await signIn(); }
+        catch (e) { alert("Sign in failed: " + e.message); console.error(e); }
+      });
+
+      document.getElementById("signOutBtn").addEventListener("click", async () => {
+        clearSession();
+        await renderMatches();
+      });
+
+      document.getElementById("reloadPlayersBtn").addEventListener("click", async () => {
+        try {
+          await renderPlayerSelect();
+          await checkApiHealth();
+          alert("Players refreshed.");
+        } catch (e) {
+          alert("Reload players failed: " + e.message);
+        }
+      });
+
+      document.getElementById("managePlayersBtn").addEventListener("click", async () => {
+        try { await managePlayers(); }
+        catch (e) { alert("Manage Players failed: " + e.message); console.error(e); }
+      });
+
+      document.getElementById("saveMatchBtn").addEventListener("click", async () => {
+        try { await saveMatch(); }
+        catch (e) { alert("Save failed: " + e.message); console.error(e); }
+      });
+
       document.getElementById("clearAllBtn").addEventListener("click", clearAllAdmin);
 
-      // Enter key on PIN triggers sign-in
       document.getElementById("pinInput").addEventListener("keydown", (e) => {
-        if (e.key === "Enter") signIn();
+        if (e.key === "Enter") document.getElementById("signInBtn").click();
       });
+
+      // Initial load
+      try {
+        await renderPlayerSelect();
+      } catch (e) {
+        // player select already shows error option
+      }
+      await checkApiHealth();
+
+      try {
+        await renderMatches();
+      } catch (e) {
+        alert("Could not load matches: " + e.message);
+      }
     });
   </script>
 </body>
