@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Team Page • Cornhole League</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --bg:#0b1220;
+      --panel: rgba(2,6,23,.55);
+      --panel2: rgba(2,6,23,.35);
+      --border: rgba(148,163,184,.14);
+      --text:#e2e8f0;
+      --muted:#94a3b8;
+      --accent:#38bdf8;
+      --accent2:#22c55e;
+      --danger:#f97316;
+      --shadow: 0 20px 60px rgba(0,0,0,.35);
+      --radius: 16px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #1f2937 0%, #020617 60%);
+      color:var(--text);
+      min-height:100vh;
+      padding: 18px;
+    }
+    a{color:var(--accent);text-decoration:none}
+    a:hover{text-decoration:underline}
+    .wrap{max-width: 980px; margin: 0 auto;}
+    .card{
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 14px 16px;
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+    }
+    h1{margin: 8px 0 6px; font-weight: 950;}
+    h2{margin: 0 0 10px; font-size: 16px;}
+    .tiny{font-size:.78rem;color:var(--muted)}
+    .muted{color:var(--muted)}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+    .row1{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:10px}
+    label{
+      font-size:.72rem;
+      text-transform:uppercase;
+      letter-spacing:.03em;
+      color:var(--muted);
+      display:block;
+      margin-bottom: 6px;
+    }
+    input, select, textarea{
+      width:100%;
+      background: rgba(15,23,42,.45);
+      border: 1px solid rgba(148,163,184,.22);
+      border-radius: 12px;
+      padding: 10px 10px;
+      color: var(--text);
+      outline:none;
+      font-size: .92rem;
+    }
+    input:focus, select:focus, textarea:focus{border-color: var(--accent)}
+    textarea{min-height: 120px; resize: vertical}
+    .actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    button{
+      border:none;border-radius:12px;padding:10px 12px;
+      font-weight: 950; cursor:pointer;
+      background: var(--accent); color:#06121d;
+    }
+    button.secondary{
+      background: rgba(148,163,184,.16);
+      color: var(--text);
+      border: 1px solid rgba(148,163,184,.22);
+    }
+    button.danger{
+      background: rgba(249,115,22,.14);
+      color: var(--text);
+      border: 1px solid rgba(249,115,22,.45);
+    }
+    button:disabled{opacity:.45;cursor:not-allowed}
+    .pill{
+      display:inline-flex;align-items:center;gap:8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,.22);
+      background: rgba(2,6,23,.22);
+      color: var(--text);
+      font-size: .78rem;
+    }
+    .dot{width:8px;height:8px;border-radius:999px;background:var(--accent2)}
+    .dot.bad{background: var(--danger)}
+    .topbar{
+      display:flex;justify-content:space-between;align-items:center;
+      gap:10px;flex-wrap:wrap;margin-bottom:10px;
+    }
+    .grid2{display:grid;grid-template-columns: 1.2fr .8fr;gap:10px}
+    @media (max-width: 860px){
+      .row{grid-template-columns:1fr}
+      .grid2{grid-template-columns:1fr}
+    }
+    table{width:100%;border-collapse:collapse;margin-top:6px;font-size:.86rem}
+    th,td{border-bottom:1px solid rgba(148,163,184,.12);padding:10px 8px;vertical-align:top}
+    th{color:var(--muted);text-transform:uppercase;font-size:.72rem;letter-spacing:.03em}
+    .badge{
+      display:inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size:.72rem;
+      font-weight: 950;
+      border: 1px solid rgba(56,189,248,.28);
+      background: rgba(56,189,248,.12);
+      margin-right: 6px;
+    }
+    .empty{padding: 16px;color:var(--muted);text-align:center}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div>
+        <div class="tiny"><a href="./index.html">← Back to Dashboard</a></div>
+        <h1 id="teamTitle">Team</h1>
+        <div class="tiny" id="teamMembers">—</div>
+      </div>
+      <div class="actions">
+        <span class="pill"><span id="apiDot" class="dot"></span><span id="apiStatus">ok</span></span>
+        <button id="signInBtn" class="secondary" type="button">Unlock</button>
+        <button id="signOutBtn" class="secondary" type="button" style="display:none;">Sign Out</button>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h2>Team Info</h2>
+        <div class="tiny" style="margin-top:-4px;margin-bottom:10px;">
+          Only team members can edit and save this page.
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="teamName">Team Name</label>
+            <input id="teamName" placeholder="Team display name" />
+          </div>
+          <div>
+            <label for="homeCourt">Home Court</label>
+            <input id="homeCourt" placeholder="Backyard / Venue" />
+          </div>
+        </div>
+
+        <div class="row1">
+          <div>
+            <label for="bio">Team Bio / Notes</label>
+            <textarea id="bio" placeholder="Style, history, trash talk..."></textarea>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="color">Accent Color (optional)</label>
+            <input id="color" placeholder="#38bdf8" />
+          </div>
+          <div>
+            <label class="muted">Access</label>
+            <div class="tiny" id="accessNote">—</div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="saveBtn" type="button">Save Changes</button>
+          <button id="setDefaultBtn" type="button" class="secondary">Set as My Default Team</button>
+        </div>
+        <div class="tiny" id="saveStatus" style="margin-top:8px;"></div>
+      </div>
+
+      <div class="card">
+        <h2>Quick Login</h2>
+        <div class="tiny" style="margin-top:-4px;margin-bottom:10px;">
+          Select your player name and enter your PIN to unlock editing.
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="playerSelect">Player</label>
+            <select id="playerSelect"></select>
+          </div>
+          <div>
+            <label for="pinInput">PIN</label>
+            <input id="pinInput" type="password" inputmode="numeric" placeholder="Your PIN" />
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="unlockBtn" type="button">Unlock</button>
+          <button id="reloadBtn" type="button" class="secondary">Reload Team</button>
+        </div>
+
+        <div class="tiny" id="authStatus" style="margin-top:8px;">Not signed in.</div>
+
+        <div style="margin-top:14px;">
+          <h2 style="margin-bottom:6px;">Team Matches (Ranked)</h2>
+          <div class="tiny" style="margin-top:-4px;margin-bottom:8px;">
+            Shows ranked doubles matches where this team participated.
+          </div>
+          <table>
+            <thead>
+              <tr><th>Date</th><th>Opponent</th><th>Score</th><th>Phase</th></tr>
+            </thead>
+            <tbody id="teamMatchesBody"></tbody>
+          </table>
+          <div id="matchesEmpty" class="empty" style="display:none;">No ranked matches found for this team yet.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API = "https://solitary-moon-7578.michaelamarino16.workers.dev";
+    const LS_TOKEN = "ct_device_token_v3";
+    const LS_PLAYER = "ct_player_v3";
+
+    let teamId = null;
+    let teamObj = null;
+    let playersCache = [];
+    let matchesCache = [];
+
+    const $ = (id) => document.getElementById(id);
+
+    function keyName(name){ return (name || "").trim().toLowerCase(); }
+
+    function getSession(){
+      const token = localStorage.getItem(LS_TOKEN) || "";
+      let player = null;
+      try { player = JSON.parse(localStorage.getItem(LS_PLAYER) || "null"); } catch {}
+      return { token, player };
+    }
+
+    function setSession(token, player){
+      localStorage.setItem(LS_TOKEN, token);
+      localStorage.setItem(LS_PLAYER, JSON.stringify(player));
+      updateAuthUI();
+    }
+
+    function clearSession(){
+      localStorage.removeItem(LS_TOKEN);
+      localStorage.removeItem(LS_PLAYER);
+      updateAuthUI();
+    }
+
+    function isSignedIn(){
+      const s = getSession();
+      return !!(s.token && s.player && s.player.key);
+    }
+
+    async function api(path, opts = {}){
+      const { token } = getSession();
+      const headers = { "Content-Type": "application/json", ...(opts.headers || {}) };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+      const res = await fetch(`${API}${path}`, { ...opts, headers });
+
+      const ct = res.headers.get("content-type") || "";
+      const isJson = ct.includes("application/json");
+      const data = isJson ? await res.json() : await res.text();
+
+      if (!res.ok){
+        const msg = (data && data.error) ? data.error : (typeof data === "string" ? data : `HTTP ${res.status}`);
+        const err = new Error(msg);
+        err.status = res.status;
+        throw err;
+      }
+      return data;
+    }
+
+    function setApiStatus(ok, msg){
+      $("apiStatus").textContent = msg;
+      $("apiDot").classList.toggle("bad", !ok);
+    }
+
+    function playerNameByKey(k){
+      const p = playersCache.find(x => x.key === k);
+      return p ? p.name : k;
+    }
+
+    function membersLabel(keys){
+      return (keys || []).map(playerNameByKey).filter(Boolean).join(" + ") || "—";
+    }
+
+    function parseTeamIdFromUrl(){
+      const u = new URL(window.location.href);
+      const fromParam = (u.searchParams.get("id") || "").trim();
+      // also allow hash form: #t_...
+      const fromHash = (u.hash || "").replace(/^#/, "").trim();
+      const id = fromParam || fromHash;
+      return id || null;
+    }
+
+    async function loadPlayers(){
+      const data = await api("/players", { method: "GET" });
+      playersCache = data.players || [];
+      return playersCache;
+    }
+
+    async function renderPlayerSelect(){
+      const sel = $("playerSelect");
+      sel.innerHTML = "";
+      if (!playersCache.length){
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "No players yet";
+        sel.appendChild(opt);
+        return;
+      }
+      for (const p of playersCache){
+        const opt = document.createElement("option");
+        opt.value = p.key;
+        opt.textContent = p.name + (p.isAdmin ? " (Admin)" : "");
+        sel.appendChild(opt);
+      }
+      const s = getSession();
+      if (s.player?.key && playersCache.some(p => p.key === s.player.key)){
+        sel.value = s.player.key;
+      } else {
+        sel.selectedIndex = 0;
+      }
+    }
+
+    function updateAuthUI(){
+      const { token, player } = getSession();
+      if (token && player){
+        $("authStatus").textContent = `Signed in as ${player.name}${player.isAdmin ? " (Admin)" : ""}.`;
+        $("signOutBtn").style.display = "inline-block";
+        $("signInBtn").style.display = "none";
+        $("pinInput").value = "";
+        $("pinInput").disabled = true;
+      } else {
+        $("authStatus").textContent = "Not signed in.";
+        $("signOutBtn").style.display = "none";
+        $("signInBtn").style.display = "inline-block";
+        $("pinInput").disabled = false;
+      }
+      applyAccessRules();
+    }
+
+    function applyAccessRules(){
+      if (!teamObj){
+        $("saveBtn").disabled = true;
+        $("setDefaultBtn").disabled = true;
+        $("accessNote").textContent = "No team loaded.";
+        return;
+      }
+      const s = getSession();
+      const myKey = s.player?.key || "";
+      const canEdit = teamObj.members.includes(myKey);
+      $("saveBtn").disabled = !canEdit;
+      $("setDefaultBtn").disabled = !canEdit;
+      $("accessNote").innerHTML = canEdit
+        ? `<span class="badge">Editable</span> You are on this team`
+        : `<span class="badge" style="border-color:rgba(148,163,184,.22);background:rgba(148,163,184,.10)">View Only</span> You are not on this team`;
+    }
+
+    function fillFormFromTeam(){
+      $("teamTitle").textContent = teamObj?.name || teamId || "Team";
+      $("teamMembers").textContent = `Members: ${membersLabel(teamObj?.members || [])} • ID: ${teamId}`;
+
+      $("teamName").value = teamObj?.name || "";
+      $("homeCourt").value = teamObj?.homeCourt || "";
+      $("bio").value = teamObj?.bio || "";
+      $("color").value = teamObj?.color || "";
+      $("saveStatus").textContent = "";
+      applyAccessRules();
+    }
+
+    async function loadTeam(){
+      teamId = parseTeamIdFromUrl();
+      if (!teamId){
+        $("teamTitle").textContent = "Team Page";
+        $("teamMembers").textContent = "Missing team id. Open a link like team.html?id=t_player1_player2";
+        $("saveBtn").disabled = true;
+        $("setDefaultBtn").disabled = true;
+        return;
+      }
+
+      try{
+        const data = await api(`/teams/${encodeURIComponent(teamId)}`, { method: "GET" });
+        teamObj = data.team;
+        fillFormFromTeam();
+      } catch(e){
+        teamObj = null;
+        $("teamTitle").textContent = "Team Not Found";
+        $("teamMembers").textContent = e.message;
+        $("saveBtn").disabled = true;
+        $("setDefaultBtn").disabled = true;
+      }
+    }
+
+    async function loadMatches(){
+      // Load all and filter client-side (simple)
+      matchesCache = await api("/matches", { method: "GET" });
+      renderTeamMatches();
+    }
+
+    function renderTeamMatches(){
+      const tbody = $("teamMatchesBody");
+      tbody.innerHTML = "";
+
+      if (!teamObj){
+        $("matchesEmpty").style.display = "block";
+        return;
+      }
+
+      const list = matchesCache
+        .filter(m =>
+          m.gameType === "doubles" &&
+          m.ranked === true &&
+          (m.teamA?.teamId === teamId || m.teamB?.teamId === teamId)
+        )
+        .slice()
+        .sort((a,b) => new Date(b.dateTime) - new Date(a.dateTime));
+
+      $("matchesEmpty").style.display = list.length ? "none" : "block";
+
+      for (const m of list){
+        const d = new Date(m.dateTime);
+        const amI = (m.teamA?.teamId === teamId);
+        const oppTeamId = amI ? m.teamB?.teamId : m.teamA?.teamId;
+
+        // best effort opponent label (use members if name unknown)
+        let opponent = oppTeamId || "Opponent";
+        // We don't have /teams cache here; show members if present:
+        const oppMembers = amI ? (m.teamB?.members || []) : (m.teamA?.members || []);
+        const oppLabel = oppMembers.length ? membersLabel(oppMembers) : opponent;
+
+        const score = `${m.teamA.score} - ${m.teamB.score}`;
+        const phase = m.phase || "regular";
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${d.toLocaleString()}</td>
+          <td>${oppLabel}</td>
+          <td>${score}</td>
+          <td>${phase}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+    }
+
+    async function unlock(){
+      const sel = $("playerSelect").value;
+      const pin = ($("pinInput").value || "").trim();
+      if (!sel){ alert("Pick a player."); return; }
+      if (!pin){ alert("Enter your PIN."); return; }
+
+      const picked = playersCache.find(p => p.key === sel);
+      if (!picked){ alert("Player not found."); return; }
+
+      try{
+        const data = await api("/auth/pin", {
+          method: "POST",
+          body: JSON.stringify({ name: picked.name, pin })
+        });
+        setSession(data.token, data.player);
+        alert("Unlocked!");
+        await reloadAll(false);
+      } catch(e){
+        alert("Unlock failed: " + e.message);
+      }
+    }
+
+    async function saveTeamInfo(){
+      if (!teamObj){ return; }
+
+      const payload = {
+        name: $("teamName").value.trim(),
+        homeCourt: $("homeCourt").value,
+        bio: $("bio").value,
+        color: $("color").value
+      };
+
+      try{
+        const data = await api(`/teams/${encodeURIComponent(teamId)}`, {
+          method: "PUT",
+          body: JSON.stringify(payload)
+        });
+        teamObj = data.team;
+        fillFormFromTeam();
+        $("saveStatus").textContent = "Saved!";
+      } catch(e){
+        $("saveStatus").textContent = "Save failed: " + e.message;
+      }
+    }
+
+    async function setDefaultTeam(){
+      try{
+        const data = await api("/players/me", {
+          method: "PUT",
+          body: JSON.stringify({ defaultTeamId: teamId })
+        });
+        // update cached session player
+        const s = getSession();
+        if (s.player){
+          s.player.defaultTeamId = data.player.defaultTeamId;
+          localStorage.setItem(LS_PLAYER, JSON.stringify(s.player));
+        }
+        alert("Default team set!");
+      } catch(e){
+        alert("Set default failed: " + e.message);
+      }
+    }
+
+    async function reloadAll(showAlert){
+      try{
+        await loadPlayers();
+        await renderPlayerSelect();
+        await loadTeam();
+        await loadMatches();
+        setApiStatus(true, "ok");
+        if (showAlert) alert("Reloaded.");
+      } catch(e){
+        setApiStatus(false, "error");
+        if (showAlert) alert("Reload failed: " + e.message);
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      updateAuthUI();
+
+      $("unlockBtn").addEventListener("click", unlock);
+      $("reloadBtn").addEventListener("click", () => reloadAll(true));
+      $("saveBtn").addEventListener("click", saveTeamInfo);
+      $("setDefaultBtn").addEventListener("click", setDefaultTeam);
+
+      $("signInBtn").addEventListener("click", () => {
+        // scroll to login form
+        window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+        $("pinInput").focus();
+      });
+
+      $("signOutBtn").addEventListener("click", async () => {
+        clearSession();
+        await reloadAll(false);
+      });
+
+      $("pinInput").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") $("unlockBtn").click();
+      });
+
+      // initial
+      try{
+        await reloadAll(false);
+        setApiStatus(true, "ok");
+      } catch(e){
+        setApiStatus(false, e.message);
+      }
+    });
+  </script>
+</body>
+</html>
