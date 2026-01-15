@@ -1,817 +1,1240 @@
-export default {
-  async fetch(request, env) {
-    // ------------------ ENV ------------------
-    const BIN_ID = env.BIN_ID;
-    const KEY = env.MASTER_KEY;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cornhole League Tracker 🟦🟧</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --bg:#0b1220;
+      --panel: rgba(2,6,23,.55);
+      --panel2: rgba(2,6,23,.35);
+      --border: rgba(148,163,184,.14);
+      --text:#e2e8f0;
+      --muted:#94a3b8;
+      --accent:#38bdf8;
+      --danger:#f97316;
+      --good:#22c55e;
+      --shadow: 0 20px 60px rgba(0,0,0,.35);
+      --radius: 18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #1f2937 0%, #020617 60%);
+      color:var(--text);
+      min-height:100vh;
+      padding: 18px;
+    }
+    h1{
+      text-align:center;
+      margin: 6px 0 14px;
+      letter-spacing:.02em;
+      font-weight: 950;
+    }
+    .wrap{max-width: 1280px; margin: 0 auto;}
+    .container{
+      display:grid;
+      grid-template-columns: 1fr 1.65fr;
+      gap: 14px;
+      align-items:start;
+    }
+    @media (max-width: 980px){
+      .container{grid-template-columns:1fr}
+    }
+    .card{
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 14px 16px;
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+    }
+    .subtle{
+      background: rgba(2,6,23,.25);
+      border: 1px solid rgba(148,163,184,.12);
+      border-radius: 14px;
+      padding: 12px;
+    }
+    .tiny{font-size:.78rem;color:var(--muted)}
+    .muted{color:var(--muted)}
+    label{
+      font-size:.72rem;
+      text-transform:uppercase;
+      letter-spacing:.03em;
+      color:var(--muted);
+      display:block;
+      margin-bottom: 6px;
+    }
+    input, select, textarea{
+      width:100%;
+      background: rgba(15,23,42,.45);
+      border: 1px solid rgba(148,163,184,.22);
+      border-radius: 12px;
+      padding: 10px 10px;
+      color: var(--text);
+      outline:none;
+      font-size: .92rem;
+    }
+    textarea{resize:vertical}
+    input:focus, select:focus, textarea:focus{border-color: var(--accent)}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+    .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px}
+    .row1{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:10px}
+    @media (max-width: 980px){
+      .row,.row3{grid-template-columns:1fr}
+    }
+    .actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    button{
+      border:none;border-radius:12px;padding:10px 12px;
+      font-weight: 950; cursor:pointer;
+      background: var(--accent); color:#06121d;
+    }
+    button.secondary{
+      background: rgba(148,163,184,.16);
+      color: var(--text);
+      border: 1px solid rgba(148,163,184,.22);
+    }
+    button.danger{
+      background: rgba(249,115,22,.14);
+      color: var(--text);
+      border: 1px solid rgba(249,115,22,.45);
+    }
+    button:disabled{opacity:.45;cursor:not-allowed}
+    .pill{
+      display:inline-flex;align-items:center;gap:8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,.22);
+      background: rgba(2,6,23,.22);
+      color: var(--text);
+      font-size: .78rem;
+      white-space:nowrap;
+    }
+    .dot{width:8px;height:8px;border-radius:999px;background:var(--good)}
+    .dot.bad{background: var(--danger)}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom: 10px}
+    .tab{
+      padding: 9px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(148,163,184,.18);
+      background: rgba(148,163,184,.10);
+      color: var(--text);
+      font-weight: 950;
+      cursor:pointer;
+      user-select:none;
+    }
+    .tab.active{
+      background: var(--accent);
+      color:#06121d;
+      border-color: transparent;
+    }
+    table{width:100%;border-collapse:collapse;margin-top:6px;font-size:.86rem}
+    th,td{border-bottom:1px solid rgba(148,163,184,.12);padding:10px 8px;vertical-align:top}
+    th{color:var(--muted);text-transform:uppercase;font-size:.72rem;letter-spacing:.03em}
+    .badge{
+      display:inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size:.72rem;
+      font-weight: 950;
+      border: 1px solid rgba(56,189,248,.28);
+      background: rgba(56,189,248,.12);
+      margin-right: 6px;
+      white-space:nowrap;
+    }
+    .badge.gray{
+      border-color: rgba(148,163,184,.22);
+      background: rgba(148,163,184,.10);
+    }
+    .score-badge{
+      display:inline-block;
+      padding: 4px 8px;
+      border-radius: 10px;
+      font-weight: 950;
+      border: 1px solid rgba(56,189,248,.26);
+      background: rgba(56,189,248,.10);
+      font-size:.82rem;
+      white-space:nowrap;
+    }
+    a{color:var(--accent);text-decoration:none}
+    a:hover{text-decoration:underline}
+    .empty{padding: 16px;color:var(--muted);text-align:center}
+    .rightTop{
+      display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px
+    }
+    .titleSmall{font-size: 1.05rem;font-weight:950}
+    .divider{height:1px;background: rgba(148,163,184,.10);margin: 10px 0}
+    .hint{color:var(--muted);font-size:.78rem;margin-top:6px}
+    code{color:var(--muted)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Cornhole League Tracker <span style="display:inline-block;width:22px;height:22px;border-radius:5px;background:#3b82f6;vertical-align:-4px;margin-left:6px;"></span> <span style="display:inline-block;width:22px;height:22px;border-radius:5px;background:#f97316;vertical-align:-4px;"></span></h1>
 
-    // Admin for management actions
-    const ADMIN_PIN = env.ADMIN_PIN;
+    <div class="container">
+      <!-- LEFT: Quick Entry -->
+      <div class="card">
+        <div class="titleSmall">Quick Entry</div>
+        <div class="tiny" style="margin-top:6px;margin-bottom:10px;">
+          Sign in → log ranked doubles (preseason/regular/championship), unranked doubles, or unranked singles.
+        </div>
 
-    // Invite code required every time to create player profiles
-    const CREATE_PROFILE_PIN = env.CREATE_PROFILE_PIN;
+        <div class="subtle">
+          <div class="rightTop" style="margin-bottom:8px;">
+            <div style="font-weight:950;">Account</div>
+            <span class="pill"><span id="apiDot" class="dot"></span><span id="apiStatus">ok</span></span>
+          </div>
 
-    // Invite code required to create teams (you said 6969)
-    const TEAM_INVITE_PIN = env.TEAM_INVITE_PIN || "6969";
+          <div class="row">
+            <div>
+              <label for="playerSelect">Player</label>
+              <select id="playerSelect"></select>
+            </div>
+            <div>
+              <label for="pinInput">PIN</label>
+              <input id="pinInput" type="password" inputmode="numeric" placeholder="Enter your PIN" />
+            </div>
+          </div>
 
-    // Active season default
-    const DEFAULT_SEASON_ID = env.DEFAULT_SEASON_ID || "2026";
+          <div class="actions" style="margin-bottom:8px;">
+            <button id="unlockBtn" type="button">Unlock</button>
+            <button id="signOutBtn" type="button" class="secondary" style="display:none;">Sign Out</button>
+            <button id="reloadBtn" type="button" class="secondary">Reload</button>
+          </div>
 
-    if (!BIN_ID || !KEY) {
-      return new Response("Missing BIN_ID or MASTER_KEY", { status: 500 });
+          <div class="actions" style="margin-bottom:8px;">
+            <button id="createProfileBtn" type="button" class="secondary">Create Player Profile</button>
+            <button id="managePlayersBtn" type="button" class="danger">Manage Players (Admin)</button>
+          </div>
+
+          <div class="tiny" id="authStatus">Not signed in.</div>
+          <div class="tiny" id="rulesNote">PIN rules: 4–8 digits.</div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="row">
+          <div>
+            <label for="matchType">Match Type</label>
+            <select id="matchType">
+              <option value="ranked_doubles">Ranked Doubles</option>
+              <option value="unranked_doubles">Unranked Doubles</option>
+              <option value="singles">Singles (Unranked)</option>
+            </select>
+          </div>
+          <div>
+            <label for="phaseSelect">Season Phase</label>
+            <select id="phaseSelect">
+              <option value="preseason">Preseason</option>
+              <option value="regular" selected>Regular Season</option>
+              <option value="championship">Championship</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Ranked doubles team picker -->
+        <div id="rankedTeamsBlock">
+          <div class="row">
+            <div>
+              <label for="teamASelect">Team A (yours)</label>
+              <select id="teamASelect"></select>
+              <div class="hint" id="teamAHint"></div>
+            </div>
+            <div>
+              <label for="teamBSelect">Team B</label>
+              <select id="teamBSelect"></select>
+              <div class="hint" id="teamBHint"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Unranked doubles players picker -->
+        <div id="unrankedDoublesBlock" style="display:none;">
+          <div class="row">
+            <div>
+              <label for="udA1">Team A Player 1</label>
+              <select id="udA1"></select>
+            </div>
+            <div>
+              <label for="udA2">Team A Player 2</label>
+              <select id="udA2"></select>
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label for="udB1">Team B Player 1</label>
+              <select id="udB1"></select>
+            </div>
+            <div>
+              <label for="udB2">Team B Player 2</label>
+              <select id="udB2"></select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Singles picker -->
+        <div id="singlesBlock" style="display:none;">
+          <div class="row">
+            <div>
+              <label for="sA">Player A</label>
+              <select id="sA"></select>
+            </div>
+            <div>
+              <label for="sB">Player B</label>
+              <select id="sB"></select>
+            </div>
+          </div>
+          <div class="tiny">Singles are always unranked and do not impact team standings.</div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="scoreA">Score A</label>
+            <input id="scoreA" type="number" min="0" max="21" placeholder="21" />
+          </div>
+          <div>
+            <label for="scoreB">Score B</label>
+            <input id="scoreB" type="number" min="0" max="21" placeholder="15" />
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="saveMatchBtn" type="button">Save Match</button>
+          <button id="clearFormBtn" type="button" class="secondary">Clear</button>
+        </div>
+
+        <div class="hint">Duplicate protection is automatic (blocks accidental double-entries).</div>
+      </div>
+
+      <!-- RIGHT: Dashboard -->
+      <div class="card">
+        <div class="rightTop">
+          <div class="titleSmall">Dashboard</div>
+          <div class="actions">
+            <span class="pill"><span class="dot" id="seasonDot"></span> <span>Season: <span id="seasonLabel">—</span></span></span>
+            <span class="pill"><span class="dot" id="matchesDot"></span> <span>Matches: <span id="matchCount">0</span></span></span>
+          </div>
+        </div>
+
+        <div class="tabs">
+          <div class="tab active" data-view="leaderboards">Leaderboards</div>
+          <div class="tab" data-view="matches">Matches</div>
+          <div class="tab" data-view="teams">Teams</div>
+          <div class="tab" data-view="teaminfo">Team Info</div>
+        </div>
+
+        <!-- View: Leaderboards -->
+        <div id="viewLeaderboards">
+          <div class="row">
+            <div>
+              <label for="lbPhase">Ranked Phase</label>
+              <select id="lbPhase">
+                <option value="preseason">Preseason</option>
+                <option value="regular" selected>Regular Season</option>
+                <option value="championship">Championship</option>
+              </select>
+            </div>
+            <div>
+              <label>Mode</label>
+              <div class="tiny" style="padding-top:10px;">Ranked doubles standings are tracked per phase.</div>
+            </div>
+          </div>
+
+          <div style="margin-top:8px;font-weight:950;">Ranked Team Leaderboard (Doubles)</div>
+          <table>
+            <thead>
+              <tr><th>Team</th><th>Wins</th><th>Losses</th><th>Games</th><th>Win %</th></tr>
+            </thead>
+            <tbody id="lbTeamsBody"></tbody>
+          </table>
+          <div id="lbTeamsEmpty" class="empty" style="display:none;">No ranked doubles matches yet for this phase.</div>
+
+          <div style="margin-top:14px;font-weight:950;">Ranked Individual Leaderboard (Doubles)</div>
+          <table>
+            <thead>
+              <tr><th>Player</th><th>Wins</th><th>Losses</th><th>Games</th><th>Win %</th></tr>
+            </thead>
+            <tbody id="lbIndivBody"></tbody>
+          </table>
+          <div id="lbIndivEmpty" class="empty" style="display:none;">No ranked doubles matches yet for this phase.</div>
+
+          <div style="margin-top:14px;font-weight:950;">Singles Leaderboard (Unranked)</div>
+          <table>
+            <thead>
+              <tr><th>Player</th><th>Wins</th><th>Losses</th><th>Games</th><th>Win %</th></tr>
+            </thead>
+            <tbody id="lbSinglesBody"></tbody>
+          </table>
+          <div id="lbSinglesEmpty" class="empty" style="display:none;">No singles matches yet.</div>
+        </div>
+
+        <!-- View: Matches -->
+        <div id="viewMatches" style="display:none;">
+          <div class="row">
+            <div>
+              <label for="matchesFilter">Filter</label>
+              <select id="matchesFilter">
+                <option value="ranked_preseason">Ranked • Preseason</option>
+                <option value="ranked_regular" selected>Ranked • Regular</option>
+                <option value="ranked_championship">Ranked • Championship</option>
+                <option value="unranked_doubles">Unranked • Doubles</option>
+                <option value="singles">Singles • Unranked</option>
+              </select>
+            </div>
+            <div>
+              <label>Editing</label>
+              <div class="tiny" style="padding-top:10px;">Edit changes scores (and phase for ranked doubles) without re-selecting teams.</div>
+            </div>
+          </div>
+
+          <table>
+            <thead>
+              <tr><th>Date</th><th>Match</th><th>Score</th><th>Logged By</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="matchesBody"></tbody>
+          </table>
+          <div id="matchesEmpty" class="empty" style="display:none;">No matches found for this filter.</div>
+        </div>
+
+        <!-- View: Teams -->
+        <div id="viewTeams" style="display:none;">
+          <div class="row">
+            <div>
+              <label>Your Teams</label>
+              <div class="tiny">Create teams with invite code (6969). Team pages are editable by team members only.</div>
+            </div>
+            <div class="actions" style="justify-content:flex-end;align-items:flex-end;">
+              <button id="createTeamBtn" class="secondary" type="button">Create Team</button>
+              <button id="refreshTeamsBtn" class="secondary" type="button">Refresh</button>
+            </div>
+          </div>
+
+          <table>
+            <thead>
+              <tr><th>Team</th><th>Members</th><th>Open</th></tr>
+            </thead>
+            <tbody id="teamsBody"></tbody>
+          </table>
+          <div id="teamsEmpty" class="empty" style="display:none;">No teams yet. Create one!</div>
+        </div>
+
+        <!-- View: Team Info -->
+        <div id="viewTeamInfo" style="display:none;">
+          <div class="tiny" style="margin-bottom:10px;">
+            Open a team page to edit team details. Only team members can edit.
+          </div>
+
+          <div class="subtle">
+            <div style="font-weight:950;margin-bottom:6px;">Open a Team Page</div>
+            <div class="row">
+              <div>
+                <label for="teamInfoSelect">Select Team</label>
+                <select id="teamInfoSelect"></select>
+              </div>
+              <div class="actions" style="align-items:flex-end;justify-content:flex-end;">
+                <button id="openTeamPageBtn" type="button">Open Team Page</button>
+              </div>
+            </div>
+            <div class="tiny">This will open <code>team.html?id=TEAM_ID</code></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API = "https://solitary-moon-7578.michaelamarino16.workers.dev";
+    const LS_TOKEN = "ct_device_token_v3";
+    const LS_PLAYER = "ct_player_v3";
+
+    let playersCache = [];
+    let teamsMineCache = [];
+    let teamsAllCache = [];
+    let matchesCache = [];
+    let activeSeasonId = "2026";
+
+    const $ = (id) => document.getElementById(id);
+    function keyName(name){ return (name || "").trim().toLowerCase(); }
+
+    function getSession(){
+      const token = localStorage.getItem(LS_TOKEN) || "";
+      let player = null;
+      try { player = JSON.parse(localStorage.getItem(LS_PLAYER) || "null"); } catch {}
+      return { token, player };
+    }
+    function setSession(token, player){
+      localStorage.setItem(LS_TOKEN, token);
+      localStorage.setItem(LS_PLAYER, JSON.stringify(player));
+      updateAuthUI();
+    }
+    function clearSession(){
+      localStorage.removeItem(LS_TOKEN);
+      localStorage.removeItem(LS_PLAYER);
+      updateAuthUI();
+    }
+    function isSignedIn(){
+      const s = getSession();
+      return !!(s.token && s.player && s.player.key);
     }
 
-    const base = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
-    const cors = {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization"
-    };
+    async function api(path, opts = {}){
+      const { token } = getSession();
+      const headers = { "Content-Type": "application/json", ...(opts.headers || {}) };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+      const res = await fetch(`${API}${path}`, { ...opts, headers });
 
-    if (request.method === "OPTIONS") return new Response(null, { headers: cors });
+      const ct = res.headers.get("content-type") || "";
+      const isJson = ct.includes("application/json");
+      const data = isJson ? await res.json() : await res.text();
 
-    const url = new URL(request.url);
-    const path = url.pathname.replace(/\/+$/, "") || "/";
-    const q = url.searchParams;
-
-    // ------------------ helpers ------------------
-    const json = (obj, status = 200) =>
-      new Response(JSON.stringify(obj), {
-        status,
-        headers: { ...cors, "Content-Type": "application/json" }
-      });
-
-    const text = (msg, status = 200) =>
-      new Response(msg, { status, headers: { ...cors, "Content-Type": "text/plain" } });
-
-    async function sha256Hex(str) {
-      const bytes = new TextEncoder().encode(str);
-      const digest = await crypto.subtle.digest("SHA-256", bytes);
-      return Array.from(new Uint8Array(digest))
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join("");
+      if (!res.ok){
+        const msg = (data && data.error) ? data.error : (typeof data === "string" ? data : `HTTP ${res.status}`);
+        const err = new Error(msg);
+        err.status = res.status;
+        throw err;
+      }
+      return data;
     }
 
-    function nowIso() {
-      return new Date().toISOString();
+    function setApiStatus(ok, msg){
+      $("apiStatus").textContent = msg;
+      $("apiDot").classList.toggle("bad", !ok);
     }
 
-    function keyName(name) {
-      return (name || "").trim().toLowerCase();
+    function playerNameByKey(k){
+      const p = playersCache.find(x => x.key === k);
+      return p ? p.name : k;
+    }
+    function membersLabel(keys){
+      const names = (keys || []).map(playerNameByKey).filter(Boolean);
+      names.sort((a,b)=>a.localeCompare(b));
+      return names.join(" + ");
+    }
+    function teamLabel(team){
+      if (team && team.name) return team.name;
+      if (team && Array.isArray(team.members)) return membersLabel(team.members);
+      return "Team";
+    }
+    function findTeamById(id){
+      return teamsAllCache.find(t => t.id === id) || teamsMineCache.find(t => t.id === id) || null;
     }
 
-    function cleanName(name) {
-      return (name || "").trim();
+    function setView(view){
+      document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.view === view));
+      $("viewLeaderboards").style.display = (view === "leaderboards") ? "block" : "none";
+      $("viewMatches").style.display = (view === "matches") ? "block" : "none";
+      $("viewTeams").style.display = (view === "teams") ? "block" : "none";
+      $("viewTeamInfo").style.display = (view === "teaminfo") ? "block" : "none";
     }
 
-    function isValidPin(pin) {
-      return /^[0-9]{4,8}$/.test((pin || "").trim());
-    }
+    function updateAuthUI(){
+      const { token, player } = getSession();
+      const signedIn = !!(token && player);
+      $("signOutBtn").style.display = signedIn ? "inline-block" : "none";
+      $("pinInput").disabled = signedIn;
+      $("unlockBtn").disabled = signedIn;
 
-    function isValidPhase(phase) {
-      return ["preseason", "regular", "championship", "unranked"].includes(phase);
-    }
-
-    function isValidGameType(gt) {
-      return ["doubles", "singles"].includes(gt);
-    }
-
-    function dedupe(arr) {
-      return Array.from(new Set(arr));
-    }
-
-    function sortKeys(arr) {
-      return [...arr].sort((a, b) => a.localeCompare(b));
-    }
-
-    function teamIdFor(memberKeys2) {
-      // canonical 2-person team id: t_<a>_<b> sorted
-      const [a, b] = sortKeys(memberKeys2);
-      return `t_${a}_${b}`;
-    }
-
-    function getBearerToken(req) {
-      const h = req.headers.get("Authorization") || "";
-      const m = h.match(/^Bearer\s+(.+)$/i);
-      return m ? m[1].trim() : "";
-    }
-
-    async function readRawRecord() {
-      const r = await fetch(`${base}/latest`, { headers: { "X-Master-Key": KEY } });
-      const j = await r.json();
-      return j?.record ?? {};
-    }
-
-    async function writeRawRecord(record) {
-      await fetch(base, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json", "X-Master-Key": KEY },
-        body: JSON.stringify(record)
-      });
-    }
-
-    async function readState() {
-      const record = await readRawRecord();
-
-      // ---- normalize / migrate ----
-      const state = {
-        version: typeof record.version === "number" ? record.version : 1,
-
-        league: record.league && typeof record.league === "object"
-          ? record.league
-          : {
-              activeSeasonId: DEFAULT_SEASON_ID,
-              seasons: {
-                [DEFAULT_SEASON_ID]: { name: `${DEFAULT_SEASON_ID} Season`, createdAt: nowIso() }
-              }
-            },
-
-        matches: Array.isArray(record.matches) ? record.matches : [],
-        players: record.players && typeof record.players === "object" ? record.players : {},
-        teams: record.teams && typeof record.teams === "object" ? record.teams : {},
-        devices: record.devices && typeof record.devices === "object" ? record.devices : {}
-      };
-
-      // ensure active season exists
-      if (!state.league.activeSeasonId) state.league.activeSeasonId = DEFAULT_SEASON_ID;
-      if (!state.league.seasons || typeof state.league.seasons !== "object") state.league.seasons = {};
-      if (!state.league.seasons[state.league.activeSeasonId]) {
-        state.league.seasons[state.league.activeSeasonId] = {
-          name: `${state.league.activeSeasonId} Season`,
-          createdAt: nowIso()
-        };
+      if (signedIn){
+        $("authStatus").textContent = `Signed in as ${player.name}${player.isAdmin ? " (Admin)" : ""}.`;
+      } else {
+        $("authStatus").textContent = "Not signed in.";
       }
 
-      // bootstrap Admin player if empty and ADMIN_PIN exists
-      if (ADMIN_PIN && Object.keys(state.players).length === 0) {
-        const k = "admin";
-        const pinHash = await sha256Hex(`${k}:${ADMIN_PIN}`);
-        state.players[k] = {
-          name: "Admin",
-          pinHash,
-          isAdmin: true,
-          createdAt: nowIso(),
-          teamIds: [],
-          defaultTeamId: null
-        };
+      $("managePlayersBtn").disabled = !signedIn || !player.isAdmin;
+    }
+
+    async function loadPlayers(){
+      const data = await api("/players", { method: "GET" });
+      playersCache = data.players || [];
+      activeSeasonId = data.activeSeasonId || activeSeasonId;
+      $("seasonLabel").textContent = activeSeasonId;
+      return playersCache;
+    }
+
+    async function loadTeamsAll(){
+      const data = await api("/teams", { method: "GET" });
+      teamsAllCache = data.teams || [];
+      return teamsAllCache;
+    }
+    async function loadTeamsMine(){
+      if (!isSignedIn()){ teamsMineCache = []; return []; }
+      const data = await api("/teams?mine=1", { method: "GET" });
+      teamsMineCache = data.teams || [];
+      return teamsMineCache;
+    }
+    async function loadMatchesAll(){
+      matchesCache = await api("/matches", { method: "GET" });
+      $("matchCount").textContent = matchesCache.length;
+      return matchesCache;
+    }
+
+    async function renderPlayerSelect(){
+      const sel = $("playerSelect");
+      sel.innerHTML = "";
+      if (!playersCache.length){
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "No players yet";
+        sel.appendChild(opt);
+        return;
+      }
+      for (const p of playersCache){
+        const opt = document.createElement("option");
+        opt.value = p.key;
+        opt.textContent = `${p.name}${p.isAdmin ? " (Admin)" : ""}`;
+        sel.appendChild(opt);
+      }
+      const s = getSession();
+      if (s.player?.key && playersCache.some(p => p.key === s.player.key)){
+        sel.value = s.player.key;
+      } else {
+        sel.selectedIndex = 0;
+      }
+    }
+
+    function fillPlayersDropdown(id){
+      const sel = $(id);
+      sel.innerHTML = "";
+      for (const p of playersCache){
+        const opt = document.createElement("option");
+        opt.value = p.key;
+        opt.textContent = p.name;
+        sel.appendChild(opt);
+      }
+    }
+
+    function renderUnrankedPickers(){
+      fillPlayersDropdown("udA1");
+      fillPlayersDropdown("udA2");
+      fillPlayersDropdown("udB1");
+      fillPlayersDropdown("udB2");
+      fillPlayersDropdown("sA");
+      fillPlayersDropdown("sB");
+
+      const s = getSession();
+      if (s.player?.key){
+        if ($("sA").querySelector(`option[value="${s.player.key}"]`)) $("sA").value = s.player.key;
+        if ($("udA1").querySelector(`option[value="${s.player.key}"]`)) $("udA1").value = s.player.key;
+      }
+    }
+
+    function renderRankedTeamPickers(){
+      const aSel = $("teamASelect");
+      const bSel = $("teamBSelect");
+      aSel.innerHTML = "";
+      bSel.innerHTML = "";
+
+      const mine = teamsMineCache.slice().sort((x,y)=>teamLabel(x).localeCompare(teamLabel(y)));
+      if (!mine.length){
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "No teams yet (create one)";
+        aSel.appendChild(opt);
+      } else {
+        for (const t of mine){
+          const opt = document.createElement("option");
+          opt.value = t.id;
+          opt.textContent = teamLabel(t);
+          aSel.appendChild(opt);
+        }
       }
 
-      // migrate old matches shape (best-effort)
-      for (const m of state.matches) {
-        if (!m.seasonId) m.seasonId = state.league.activeSeasonId || DEFAULT_SEASON_ID;
-        if (!m.phase) m.phase = "regular";
-        if (typeof m.ranked !== "boolean") m.ranked = true;
-        if (!m.gameType) m.gameType = "doubles";
-        if (!m.recordedByKey && m.recordedBy) m.recordedByKey = keyName(m.recordedBy);
-        if (!m.teamA?.members && Array.isArray(m.teamA?.players)) m.teamA.members = m.teamA.players.map(cleanName);
-        if (!m.teamB?.members && Array.isArray(m.teamB?.players)) m.teamB.members = m.teamB.players.map(cleanName);
+      const all = teamsAllCache.slice().sort((x,y)=>teamLabel(x).localeCompare(teamLabel(y)));
+      const currentA = aSel.value;
+      const others = all.filter(t => t.id && t.id !== currentA);
+
+      if (!others.length){
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "No other teams found";
+        bSel.appendChild(opt);
+      } else {
+        for (const t of others){
+          const opt = document.createElement("option");
+          opt.value = t.id;
+          opt.textContent = teamLabel(t);
+          bSel.appendChild(opt);
+        }
       }
 
-      state.version = 3;
-      return state;
-    }
-
-    async function writeState(state) {
-      const record = {
-        version: 3,
-        league: state.league,
-        matches: state.matches,
-        players: state.players,
-        teams: state.teams,
-        devices: state.devices
-      };
-      await writeRawRecord(record);
-    }
-
-    async function requireAuth(state, req) {
-      const token = getBearerToken(req);
-      if (!token) return { ok: false, error: "Missing token" };
-
-      const tokenHash = await sha256Hex(token);
-      const device = state.devices[tokenHash];
-      if (!device) return { ok: false, error: "Invalid token" };
-
-      const player = state.players[device.playerKey];
-      if (!player) return { ok: false, error: "Player not found" };
-
-      return { ok: true, tokenHash, playerKey: device.playerKey, player };
-    }
-
-    function scrubPlayerPublic(k, p) {
-      return {
-        key: k,
-        name: p.name,
-        isAdmin: !!p.isAdmin,
-        teamIds: Array.isArray(p.teamIds) ? p.teamIds : [],
-        defaultTeamId: p.defaultTeamId || null,
-        createdAt: p.createdAt || null
-      };
-    }
-
-    function scrubTeamPublic(t) {
-      return {
-        id: t.id,
-        name: t.name,
-        members: t.members,
-        createdAt: t.createdAt || null,
-        createdByKey: t.createdByKey || null,
-        bio: t.bio || "",
-        homeCourt: t.homeCourt || "",
-        color: t.color || ""
-      };
-    }
-
-    function timeBucketIso(iso, minutes = 10) {
-      const ms = new Date(iso).getTime();
-      const bucketMs = minutes * 60 * 1000;
-      return Math.floor(ms / bucketMs);
-    }
-
-    async function computeFingerprint(matchLike) {
-      const seasonId = matchLike.seasonId || DEFAULT_SEASON_ID;
-      const phase = matchLike.phase || "unranked";
-      const ranked = !!matchLike.ranked;
-      const gameType = matchLike.gameType || "doubles";
-
-      const aMembers = sortKeys((matchLike.teamA?.members || []).map(keyName)).join(",");
-      const bMembers = sortKeys((matchLike.teamB?.members || []).map(keyName)).join(",");
-
-      const scoreA = Number(matchLike.teamA?.score);
-      const scoreB = Number(matchLike.teamB?.score);
-
-      const dt = matchLike.dateTime || nowIso();
-      const bucket = timeBucketIso(dt, 10);
-
-      const payload = `${seasonId}|${phase}|${ranked ? 1 : 0}|${gameType}|A:${aMembers}|B:${bMembers}|S:${scoreA}-${scoreB}|T:${bucket}`;
-      return await sha256Hex(payload);
-    }
-
-    function assertMembersExist(state, memberKeys) {
-      for (const k of memberKeys) {
-        if (!state.players[k]) return { ok: false, error: `Unknown player: ${k}` };
+      function updateHints(){
+        const tA = findTeamById(aSel.value);
+        const tB = findTeamById(bSel.value);
+        $("teamAHint").textContent = tA ? `Members: ${membersLabel(tA.members)}` : "";
+        $("teamBHint").textContent = tB ? `Members: ${membersLabel(tB.members)}` : "";
       }
-      return { ok: true };
-    }
-
-    // ------------------ ROUTES ------------------
-
-    // Back-compat: GET / returns matches
-    if (request.method === "GET" && path === "/") {
-      const state = await readState();
-      return json(state.matches);
-    }
-
-    // List players (public)
-    if (request.method === "GET" && path === "/players") {
-      const state = await readState();
-      const list = Object.entries(state.players)
-        .map(([k, p]) => scrubPlayerPublic(k, p))
-        .sort((a, b) => a.name.localeCompare(b.name));
-      return json({ players: list, activeSeasonId: state.league.activeSeasonId });
-    }
-
-    // Auth: PIN login -> token
-    if (request.method === "POST" && path === "/auth/pin") {
-      const state = await readState();
-      let body;
-      try { body = await request.json(); } catch { return json({ error: "Invalid JSON" }, 400); }
-
-      const name = cleanName(body?.name);
-      const pin = (body?.pin || "").trim();
-      if (!name || !pin) return json({ error: "name and pin required" }, 400);
-
-      const k = keyName(name);
-      const player = state.players[k];
-      if (!player) return json({ error: "Unknown player" }, 404);
-
-      const attempt = await sha256Hex(`${k}:${pin}`);
-      if (attempt !== player.pinHash) return json({ error: "Incorrect PIN" }, 401);
-
-      const token = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
-      const tokenHash = await sha256Hex(token);
-
-      state.devices[tokenHash] = { playerKey: k, createdAt: nowIso() };
-      await writeState(state);
-
-      return json({ token, player: scrubPlayerPublic(k, player) });
-    }
-
-    // Profile creation (invite code required every time)
-    // POST /profile/create { createPin, name, pin }
-    if (request.method === "POST" && path === "/profile/create") {
-      if (!CREATE_PROFILE_PIN) return json({ error: "CREATE_PROFILE_PIN not configured" }, 500);
-
-      const state = await readState();
-      let body;
-      try { body = await request.json(); } catch { return json({ error: "Invalid JSON" }, 400); }
-
-      const createPin = (body?.createPin || "").trim();
-      const name = cleanName(body?.name);
-      const pin = (body?.pin || "").trim();
-
-      if (createPin !== CREATE_PROFILE_PIN) return json({ error: "Invalid invite code" }, 403);
-      if (!name || !pin) return json({ error: "name and pin required" }, 400);
-      if (!isValidPin(pin)) return json({ error: "PIN must be 4–8 digits" }, 400);
-
-      const k = keyName(name);
-      if (!k) return json({ error: "Invalid name" }, 400);
-      if (state.players[k]) return json({ error: "Player already exists" }, 409);
-
-      state.players[k] = {
-        name,
-        pinHash: await sha256Hex(`${k}:${pin}`),
-        isAdmin: false,
-        createdAt: nowIso(),
-        teamIds: [],
-        defaultTeamId: null
-      };
-
-      await writeState(state);
-      return json({ ok: true });
-    }
-
-    // Admin: manage players
-    // POST /admin/player { adminPin, action: reset|remove|setAdmin, name, newPin?, makeAdmin? }
-    if (request.method === "POST" && path === "/admin/player") {
-      if (!ADMIN_PIN) return json({ error: "ADMIN_PIN not configured" }, 500);
-
-      let body;
-      try { body = await request.json(); } catch { return json({ error: "Invalid JSON" }, 400); }
-
-      const pin = (body?.adminPin || "").trim();
-      if (pin !== ADMIN_PIN) return json({ error: "Forbidden" }, 403);
-
-      const state = await readState();
-      const action = (body?.action || "").trim();
-      const name = cleanName(body?.name);
-      const k = keyName(name);
-
-      if (!action || !name) return json({ error: "action and name required" }, 400);
-      if (!state.players[k]) return json({ error: "Player not found" }, 404);
-
-      if (action === "reset") {
-        const newPin = (body?.newPin || "").trim();
-        if (!isValidPin(newPin)) return json({ error: "newPin must be 4–8 digits" }, 400);
-        state.players[k].pinHash = await sha256Hex(`${k}:${newPin}`);
-        await writeState(state);
-        return json({ ok: true });
-      }
-
-      if (action === "setAdmin") {
-        const makeAdmin = !!body?.makeAdmin;
-        state.players[k].isAdmin = makeAdmin;
-        await writeState(state);
-        return json({ ok: true });
-      }
-
-      if (action === "remove") {
-        if (state.players[k].isAdmin) return json({ error: "Cannot remove admin player" }, 400);
-
-        for (const [tid, t] of Object.entries(state.teams)) {
-          if (Array.isArray(t.members) && t.members.includes(k)) {
-            delete state.teams[tid];
+      aSel.addEventListener("change", ()=>{
+        const aNow = aSel.value;
+        bSel.innerHTML = "";
+        const othersNow = all.filter(t => t.id && t.id !== aNow);
+        if (!othersNow.length){
+          const opt = document.createElement("option");
+          opt.value = "";
+          opt.textContent = "No other teams found";
+          bSel.appendChild(opt);
+        } else {
+          for (const t of othersNow){
+            const opt = document.createElement("option");
+            opt.value = t.id;
+            opt.textContent = teamLabel(t);
+            bSel.appendChild(opt);
           }
         }
-
-        for (const pk of Object.keys(state.players)) {
-          const p = state.players[pk];
-          if (!Array.isArray(p.teamIds)) p.teamIds = [];
-          p.teamIds = p.teamIds.filter((tid) => state.teams[tid]);
-          if (p.defaultTeamId && !state.teams[p.defaultTeamId]) p.defaultTeamId = null;
-        }
-
-        for (const [th, d] of Object.entries(state.devices)) {
-          if (d.playerKey === k) delete state.devices[th];
-        }
-
-        delete state.players[k];
-        await writeState(state);
-        return json({ ok: true });
-      }
-
-      return json({ error: "Unknown action" }, 400);
+        updateHints();
+      });
+      bSel.addEventListener("change", updateHints);
+      updateHints();
     }
 
-    // Teams: list (GET /teams, GET /teams?mine=1)
-    if (request.method === "GET" && path === "/teams") {
-      const state = await readState();
+    function updateMatchTypeUI(){
+      const t = $("matchType").value;
+      const phaseSel = $("phaseSelect");
 
-      const mine = q.get("mine") === "1";
-      if (!mine) {
-        const list = Object.values(state.teams)
-          .map(scrubTeamPublic)
-          .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
-        return json({ teams: list });
-      }
+      $("rankedTeamsBlock").style.display = (t === "ranked_doubles") ? "block" : "none";
+      $("unrankedDoublesBlock").style.display = (t === "unranked_doubles") ? "block" : "none";
+      $("singlesBlock").style.display = (t === "singles") ? "block" : "none";
 
-      const auth = await requireAuth(state, request);
-      if (!auth.ok) return json({ error: auth.error }, 401);
-
-      const list = Object.values(state.teams)
-        .filter((t) => Array.isArray(t.members) && t.members.includes(auth.playerKey))
-        .map(scrubTeamPublic)
-        .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
-      return json({ teams: list });
+      if (t === "ranked_doubles") phaseSel.disabled = false;
+      else phaseSel.disabled = true;
     }
 
-    // Teams: get by id
-    const getTeam = path.match(/^\/teams\/([^/]+)$/);
-    if (request.method === "GET" && getTeam) {
-      const teamId = getTeam[1];
-      const state = await readState();
-      const t = state.teams[teamId];
-      if (!t) return json({ error: "Team not found" }, 404);
-      return json({ team: scrubTeamPublic(t) });
+    function clearEntryForm(){
+      $("scoreA").value = "";
+      $("scoreB").value = "";
     }
 
-    // Teams: create (auth + invite code + creator must be member)
-    // POST /teams { inviteCode, members:[k1,k2], name? }
-    if (request.method === "POST" && path === "/teams") {
-      const state = await readState();
-      const auth = await requireAuth(state, request);
-      if (!auth.ok) return json({ error: auth.error }, 401);
+    function calcLeaderboardsRankedDoubles(matches, phase){
+      const teams = new Map();
+      const indiv = new Map();
 
-      let body;
-      try { body = await request.json(); } catch { return json({ error: "Invalid JSON" }, 400); }
-
-      const inviteCode = (body?.inviteCode || "").trim();
-      if (inviteCode !== TEAM_INVITE_PIN) return json({ error: "Invalid team invite code" }, 403);
-
-      const membersRaw = Array.isArray(body?.members) ? body.members : [];
-      const members = dedupe(membersRaw.map(keyName)).filter(Boolean);
-
-      if (members.length !== 2) return json({ error: "Teams must have exactly 2 unique players" }, 400);
-      if (!members.includes(auth.playerKey)) return json({ error: "You must be on the team you create" }, 403);
-
-      const existsCheck = assertMembersExist(state, members);
-      if (!existsCheck.ok) return json({ error: existsCheck.error }, 400);
-
-      const id = teamIdFor(members);
-      if (state.teams[id]) return json({ error: "That team already exists" }, 409);
-
-      const p1 = state.players[members[0]].name;
-      const p2 = state.players[members[1]].name;
-      const defaultName = `${[p1, p2].sort((a, b) => a.localeCompare(b)).join(" + ")}`;
-      const name = cleanName(body?.name) || defaultName;
-
-      state.teams[id] = {
-        id,
-        name,
-        members: sortKeys(members),
-        createdAt: nowIso(),
-        createdByKey: auth.playerKey,
-        bio: "",
-        homeCourt: "",
-        color: ""
+      const ensure = (map, k, name) => {
+        if (!map.has(k)) map.set(k, { key:k, name, wins:0, losses:0, games:0 });
+        return map.get(k);
       };
 
-      for (const mk of state.teams[id].members) {
-        const p = state.players[mk];
-        if (!Array.isArray(p.teamIds)) p.teamIds = [];
-        if (!p.teamIds.includes(id)) p.teamIds.push(id);
-        if (!p.defaultTeamId) p.defaultTeamId = id;
-      }
-
-      await writeState(state);
-      return json({ ok: true, team: scrubTeamPublic(state.teams[id]) });
-    }
-
-    // Teams: update info (auth + must be team member)
-    // PUT /teams/:id { name?, bio?, homeCourt?, color? }
-    const putTeam = path.match(/^\/teams\/([^/]+)$/);
-    if (request.method === "PUT" && putTeam) {
-      const teamId = putTeam[1];
-      const state = await readState();
-      const auth = await requireAuth(state, request);
-      if (!auth.ok) return json({ error: auth.error }, 401);
-
-      const t = state.teams[teamId];
-      if (!t) return json({ error: "Team not found" }, 404);
-
-      if (!Array.isArray(t.members) || !t.members.includes(auth.playerKey)) {
-        return json({ error: "Only team members can edit team info" }, 403);
-      }
-
-      let body;
-      try { body = await request.json(); } catch { return json({ error: "Invalid JSON" }, 400); }
-
-      const name = body?.name !== undefined ? cleanName(body.name) : undefined;
-      const bio = body?.bio !== undefined ? String(body.bio || "") : undefined;
-      const homeCourt = body?.homeCourt !== undefined ? String(body.homeCourt || "") : undefined;
-      const color = body?.color !== undefined ? String(body.color || "") : undefined;
-
-      if (name !== undefined) {
-        if (!name) return json({ error: "Team name cannot be blank" }, 400);
-        t.name = name;
-      }
-      if (bio !== undefined) t.bio = bio.slice(0, 2000);
-      if (homeCourt !== undefined) t.homeCourt = homeCourt.slice(0, 200);
-      if (color !== undefined) t.color = color.slice(0, 40);
-
-      await writeState(state);
-      return json({ ok: true, team: scrubTeamPublic(t) });
-    }
-
-    // Player: set default team (auth)
-    // PUT /players/me { defaultTeamId }
-    if (request.method === "PUT" && path === "/players/me") {
-      const state = await readState();
-      const auth = await requireAuth(state, request);
-      if (!auth.ok) return json({ error: auth.error }, 401);
-
-      let body;
-      try { body = await request.json(); } catch { return json({ error: "Invalid JSON" }, 400); }
-
-      const defaultTeamId = String(body?.defaultTeamId || "").trim();
-      if (!defaultTeamId) return json({ error: "defaultTeamId required" }, 400);
-
-      const t = state.teams[defaultTeamId];
-      if (!t) return json({ error: "Team not found" }, 404);
-      if (!Array.isArray(t.members) || !t.members.includes(auth.playerKey)) {
-        return json({ error: "You can only set a default team you belong to" }, 403);
-      }
-
-      auth.player.defaultTeamId = defaultTeamId;
-      await writeState(state);
-      return json({ ok: true, player: scrubPlayerPublic(auth.playerKey, auth.player) });
-    }
-
-    // Matches: list with filters
-    // GET /matches?seasonId=2026&phase=regular&ranked=1&gameType=doubles
-    if (request.method === "GET" && path === "/matches") {
-      const state = await readState();
-      let matches = state.matches;
-
-      const seasonId = q.get("seasonId");
-      const phase = q.get("phase");
-      const ranked = q.get("ranked");
-      const gameType = q.get("gameType");
-
-      if (seasonId) matches = matches.filter((m) => String(m.seasonId || "") === seasonId);
-      if (phase) matches = matches.filter((m) => String(m.phase || "") === phase);
-      if (ranked === "1") matches = matches.filter((m) => !!m.ranked);
-      if (ranked === "0") matches = matches.filter((m) => !m.ranked);
-      if (gameType) matches = matches.filter((m) => String(m.gameType || "") === gameType);
-
-      return json(matches);
-    }
-
-    // Matches: create (auth required)
-    // POST /matches
-    if (request.method === "POST" && path === "/matches") {
-      const state = await readState();
-      const auth = await requireAuth(state, request);
-      if (!auth.ok) return json({ error: auth.error }, 401);
-
-      let body;
-      try { body = await request.json(); } catch { return json({ error: "Invalid JSON" }, 400); }
-
-      const seasonId = String(body?.seasonId || state.league.activeSeasonId || DEFAULT_SEASON_ID).trim();
-      const phase = String(body?.phase || "unranked").trim();
-      const ranked = !!body?.ranked;
-      const gameType = String(body?.gameType || "doubles").trim();
-
-      if (!seasonId) return json({ error: "seasonId required" }, 400);
-      if (!isValidPhase(phase)) return json({ error: "Invalid phase" }, 400);
-      if (!isValidGameType(gameType)) return json({ error: "Invalid gameType" }, 400);
-
-      // enforce: singles must be unranked only
-      if (gameType === "singles") {
-        if (ranked) return json({ error: "Singles matches must be unranked" }, 400);
-        if (phase !== "unranked") return json({ error: "Singles matches must use phase=unranked" }, 400);
-      }
-
-      const scoreA = Number(body?.teamA?.score);
-      const scoreB = Number(body?.teamB?.score);
-      if (!Number.isFinite(scoreA) || !Number.isFinite(scoreB)) return json({ error: "scores required" }, 400);
-
-      const teamA = { teamId: null, members: [], score: scoreA };
-      const teamB = { teamId: null, members: [], score: scoreB };
-
-      if (gameType === "doubles" && ranked) {
-        if (phase === "unranked") return json({ error: "Ranked matches cannot be phase=unranked" }, 400);
-
-        const teamAId = String(body?.teamA?.teamId || "").trim();
-        const teamBId = String(body?.teamB?.teamId || "").trim();
-        if (!teamAId || !teamBId) return json({ error: "teamA.teamId and teamB.teamId required for ranked doubles" }, 400);
-
-        const tA = state.teams[teamAId];
-        const tB = state.teams[teamBId];
-        if (!tA || !tB) return json({ error: "One or both teams not found" }, 404);
-
-        teamA.teamId = teamAId;
-        teamA.members = sortKeys((tA.members || []).map(keyName));
-
-        teamB.teamId = teamBId;
-        teamB.members = sortKeys((tB.members || []).map(keyName));
-
-        if (teamA.members.length !== 2 || teamB.members.length !== 2) return json({ error: "Teams must have 2 members" }, 400);
-      }
-
-      if (gameType === "doubles" && !ranked) {
-        if (phase !== "unranked") return json({ error: "Unranked doubles must use phase=unranked" }, 400);
-
-        const aMembers = Array.isArray(body?.teamA?.members) ? body.teamA.members.map(keyName).filter(Boolean) : [];
-        const bMembers = Array.isArray(body?.teamB?.members) ? body.teamB.members.map(keyName).filter(Boolean) : [];
-
-        const aUniq = dedupe(aMembers);
-        const bUniq = dedupe(bMembers);
-
-        if (aUniq.length !== 2 || bUniq.length !== 2) {
-          return json({ error: "Unranked doubles requires exactly 2 players per side" }, 400);
-        }
-
-        teamA.members = sortKeys(aUniq);
-        teamB.members = sortKeys(bUniq);
-
-        const okA = assertMembersExist(state, teamA.members);
-        const okB = assertMembersExist(state, teamB.members);
-        if (!okA.ok) return json({ error: okA.error }, 400);
-        if (!okB.ok) return json({ error: okB.error }, 400);
-      }
-
-      if (gameType === "singles") {
-        const aMembers = Array.isArray(body?.teamA?.members) ? body.teamA.members.map(keyName).filter(Boolean) : [];
-        const bMembers = Array.isArray(body?.teamB?.members) ? body.teamB.members.map(keyName).filter(Boolean) : [];
-
-        const aUniq = dedupe(aMembers);
-        const bUniq = dedupe(bMembers);
-
-        if (aUniq.length !== 1 || bUniq.length !== 1) return json({ error: "Singles requires exactly 1 player per side" }, 400);
-        if (aUniq[0] === bUniq[0]) return json({ error: "Singles players must be different" }, 400);
-
-        teamA.members = aUniq;
-        teamB.members = bUniq;
-
-        const okA = assertMembersExist(state, teamA.members);
-        const okB = assertMembersExist(state, teamB.members);
-        if (!okA.ok) return json({ error: okA.error }, 400);
-        if (!okB.ok) return json({ error: okB.error }, 400);
-      }
-
-      const match = {
-        id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
-        seasonId,
-        phase,
-        ranked,
-        gameType,
-        dateTime: nowIso(),
-        recordedBy: auth.player.name,
-        recordedByKey: auth.playerKey,
-        teamA,
-        teamB,
-        fingerprint: ""
+      const teamKeyFromMembers = (members) => {
+        const mk = (members || []).map(keyName).filter(Boolean).sort();
+        return `members:${mk.join("|")}`;
       };
 
-      match.fingerprint = await computeFingerprint(match);
+      const labelFromMembers = (members) => {
+        const mk = (members || []).map(keyName).filter(Boolean);
+        return membersLabel(mk) || "Unknown Team";
+      };
 
-      if (state.matches.some((m) => m.fingerprint && m.fingerprint === match.fingerprint)) {
-        return json({ error: "Duplicate match detected (already logged recently)" }, 409);
+      const filtered = matches.filter(m =>
+        m.gameType === "doubles" && m.ranked === true && (m.phase || "regular") === phase
+      );
+
+      for (const m of filtered){
+        const scoreA = Number(m.teamA?.score);
+        const scoreB = Number(m.teamB?.score);
+        if (!Number.isFinite(scoreA) || !Number.isFinite(scoreB)) continue;
+
+        const aId = m.teamA?.teamId ? `team:${m.teamA.teamId}` : teamKeyFromMembers(m.teamA?.members);
+        const bId = m.teamB?.teamId ? `team:${m.teamB.teamId}` : teamKeyFromMembers(m.teamB?.members);
+
+        let aName = m.teamA?.teamId
+          ? (findTeamById(m.teamA.teamId)?.name || labelFromMembers(m.teamA?.members))
+          : labelFromMembers(m.teamA?.members);
+
+        let bName = m.teamB?.teamId
+          ? (findTeamById(m.teamB.teamId)?.name || labelFromMembers(m.teamB?.members))
+          : labelFromMembers(m.teamB?.members);
+
+        const ta = ensure(teams, aId, aName);
+        const tb = ensure(teams, bId, bName);
+        ta.games++; tb.games++;
+
+        const aMembers = (m.teamA?.members || []).map(keyName).filter(Boolean);
+        const bMembers = (m.teamB?.members || []).map(keyName).filter(Boolean);
+
+        for (const pk of aMembers) ensure(indiv, pk, playerNameByKey(pk)).games++;
+        for (const pk of bMembers) ensure(indiv, pk, playerNameByKey(pk)).games++;
+
+        if (scoreA > scoreB){
+          ta.wins++; tb.losses++;
+          for (const pk of aMembers) ensure(indiv, pk, playerNameByKey(pk)).wins++;
+          for (const pk of bMembers) ensure(indiv, pk, playerNameByKey(pk)).losses++;
+        } else if (scoreB > scoreA){
+          tb.wins++; ta.losses++;
+          for (const pk of bMembers) ensure(indiv, pk, playerNameByKey(pk)).wins++;
+          for (const pk of aMembers) ensure(indiv, pk, playerNameByKey(pk)).losses++;
+        }
       }
 
-      state.matches.push(match);
-      await writeState(state);
+      const toArr = (map) => Array.from(map.values()).map(x => ({
+        ...x,
+        winpct: x.games ? ((x.wins / x.games) * 100).toFixed(0) : "0"
+      })).sort((a,b) => (b.wins - a.wins) || (Number(b.winpct)-Number(a.winpct)) || a.name.localeCompare(b.name));
 
-      return json({ ok: true, match });
+      return { teamArr: toArr(teams), indivArr: toArr(indiv) };
     }
 
-    // Matches: update (owner/admin). Keeps match type/season/recordedBy/dateTime unchanged.
-    const putMatch = path.match(/^\/matches\/([^/]+)$/);
-    if (request.method === "PUT" && putMatch) {
-      const matchId = putMatch[1];
-      const state = await readState();
-      const auth = await requireAuth(state, request);
-      if (!auth.ok) return json({ error: auth.error }, 401);
+    function calcSinglesLeaderboard(matches){
+      const indiv = new Map();
+      const ensure = (k) => {
+        if (!indiv.has(k)) indiv.set(k, { key:k, name: playerNameByKey(k), wins:0, losses:0, games:0 });
+        return indiv.get(k);
+      };
 
-      const idx = state.matches.findIndex((m) => m.id === matchId);
-      if (idx < 0) return json({ error: "Match not found" }, 404);
+      const singles = matches.filter(m => m.gameType === "singles");
+      for (const m of singles){
+        const a = (m.teamA?.members || []).map(keyName).filter(Boolean)[0];
+        const b = (m.teamB?.members || []).map(keyName).filter(Boolean)[0];
+        const sA = Number(m.teamA?.score), sB = Number(m.teamB?.score);
+        if (!a || !b || !Number.isFinite(sA) || !Number.isFinite(sB)) continue;
 
-      const existing = state.matches[idx];
-      const isOwner = existing.recordedByKey === auth.playerKey;
-      const isAdmin = !!auth.player.isAdmin;
-      if (!isOwner && !isAdmin) return json({ error: "Forbidden" }, 403);
-
-      let body;
-      try { body = await request.json(); } catch { return json({ error: "Invalid JSON" }, 400); }
-
-      // Allow editing: scores always, and phase only for ranked doubles
-      const scoreA = Number(body?.teamA?.score);
-      const scoreB = Number(body?.teamB?.score);
-      if (!Number.isFinite(scoreA) || !Number.isFinite(scoreB)) return json({ error: "scores required" }, 400);
-
-      const next = structuredClone(existing);
-      next.teamA.score = scoreA;
-      next.teamB.score = scoreB;
-
-      // phase edits: only for ranked doubles
-      if (existing.gameType === "doubles" && existing.ranked === true) {
-        const phase = String(body?.phase || existing.phase || "regular").trim().toLowerCase();
-        if (!["preseason","regular","championship"].includes(phase)) {
-          return json({ error: "Invalid phase (ranked must be preseason|regular|championship)" }, 400);
-        }
-        next.phase = phase;
+        ensure(a).games++; ensure(b).games++;
+        if (sA > sB){ ensure(a).wins++; ensure(b).losses++; }
+        else if (sB > sA){ ensure(b).wins++; ensure(a).losses++; }
       }
 
-      // If caller included teamIds or members, accept them (but do not require).
-      // This allows "no team select" edits, while still permitting corrections if needed.
-      if (existing.gameType === "doubles" && existing.ranked === true) {
-        const maybeAId = body?.teamA?.teamId ? String(body.teamA.teamId).trim() : null;
-        const maybeBId = body?.teamB?.teamId ? String(body.teamB.teamId).trim() : null;
-
-        if (maybeAId) {
-          const tA = state.teams[maybeAId];
-          if (!tA) return json({ error: "teamA team not found" }, 404);
-          next.teamA.teamId = maybeAId;
-          next.teamA.members = sortKeys((tA.members || []).map(keyName));
-        }
-        if (maybeBId) {
-          const tB = state.teams[maybeBId];
-          if (!tB) return json({ error: "teamB team not found" }, 404);
-          next.teamB.teamId = maybeBId;
-          next.teamB.members = sortKeys((tB.members || []).map(keyName));
-        }
-      }
-
-      if (existing.gameType === "doubles" && existing.ranked === false) {
-        // unranked doubles: optional members change if provided
-        if (Array.isArray(body?.teamA?.members)) {
-          const aUniq = dedupe(body.teamA.members.map(keyName).filter(Boolean));
-          if (aUniq.length !== 2) return json({ error: "Unranked doubles requires 2 players for teamA" }, 400);
-          const okA = assertMembersExist(state, aUniq);
-          if (!okA.ok) return json({ error: okA.error }, 400);
-          next.teamA.teamId = null;
-          next.teamA.members = sortKeys(aUniq);
-        }
-        if (Array.isArray(body?.teamB?.members)) {
-          const bUniq = dedupe(body.teamB.members.map(keyName).filter(Boolean));
-          if (bUniq.length !== 2) return json({ error: "Unranked doubles requires 2 players for teamB" }, 400);
-          const okB = assertMembersExist(state, bUniq);
-          if (!okB.ok) return json({ error: okB.error }, 400);
-          next.teamB.teamId = null;
-          next.teamB.members = sortKeys(bUniq);
-        }
-        next.phase = "unranked";
-        next.ranked = false;
-      }
-
-      if (existing.gameType === "singles") {
-        // singles unranked only
-        next.ranked = false;
-        next.phase = "unranked";
-        if (Array.isArray(body?.teamA?.members)) {
-          const aUniq = dedupe(body.teamA.members.map(keyName).filter(Boolean));
-          if (aUniq.length !== 1) return json({ error: "Singles requires 1 player for teamA" }, 400);
-          const okA = assertMembersExist(state, aUniq);
-          if (!okA.ok) return json({ error: okA.error }, 400);
-          next.teamA.teamId = null;
-          next.teamA.members = aUniq;
-        }
-        if (Array.isArray(body?.teamB?.members)) {
-          const bUniq = dedupe(body.teamB.members.map(keyName).filter(Boolean));
-          if (bUniq.length !== 1) return json({ error: "Singles requires 1 player for teamB" }, 400);
-          const okB = assertMembersExist(state, bUniq);
-          if (!okB.ok) return json({ error: okB.error }, 400);
-          next.teamB.teamId = null;
-          next.teamB.members = bUniq;
-        }
-      }
-
-      // recompute fingerprint (keeps original dateTime bucket behavior)
-      next.fingerprint = await computeFingerprint(next);
-
-      if (state.matches.some((m) => m.id !== matchId && m.fingerprint && m.fingerprint === next.fingerprint)) {
-        return json({ error: "Duplicate match detected (already logged recently)" }, 409);
-      }
-
-      state.matches[idx] = next;
-      await writeState(state);
-      return json({ ok: true });
+      const arr = Array.from(indiv.values()).map(x=>({
+        ...x,
+        winpct: x.games ? ((x.wins/x.games)*100).toFixed(0) : "0"
+      })).sort((a,b)=>(b.wins-a.wins)||(Number(b.winpct)-Number(a.winpct))||a.name.localeCompare(b.name));
+      return arr;
     }
 
-    // Matches: delete (owner/admin)
-    const delMatch = path.match(/^\/matches\/([^/]+)$/);
-    if (request.method === "DELETE" && delMatch) {
-      const matchId = delMatch[1];
-      const state = await readState();
-      const auth = await requireAuth(state, request);
-      if (!auth.ok) return json({ error: auth.error }, 401);
+    function renderLeaderboards(){
+      const phase = $("lbPhase").value;
+      const { teamArr, indivArr } = calcLeaderboardsRankedDoubles(matchesCache, phase);
 
-      const existing = state.matches.find((m) => m.id === matchId);
-      if (!existing) return json({ error: "Match not found" }, 404);
+      const tb = $("lbTeamsBody"); tb.innerHTML = "";
+      $("lbTeamsEmpty").style.display = teamArr.length ? "none" : "block";
+      for (const r of teamArr){
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${escapeHtml(r.name)}</td><td>${r.wins}</td><td>${r.losses}</td><td>${r.games}</td><td>${r.winpct}%</td>`;
+        tb.appendChild(tr);
+      }
 
-      const isOwner = existing.recordedByKey === auth.playerKey;
-      const isAdmin = !!auth.player.isAdmin;
-      if (!isOwner && !isAdmin) return json({ error: "Forbidden" }, 403);
+      const ib = $("lbIndivBody"); ib.innerHTML = "";
+      $("lbIndivEmpty").style.display = indivArr.length ? "none" : "block";
+      for (const r of indivArr){
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${escapeHtml(r.name)}</td><td>${r.wins}</td><td>${r.losses}</td><td>${r.games}</td><td>${r.winpct}%</td>`;
+        ib.appendChild(tr);
+      }
 
-      state.matches = state.matches.filter((m) => m.id !== matchId);
-      await writeState(state);
-      return json({ ok: true });
+      const sb = $("lbSinglesBody"); sb.innerHTML = "";
+      const singlesArr = calcSinglesLeaderboard(matchesCache);
+      $("lbSinglesEmpty").style.display = singlesArr.length ? "none" : "block";
+      for (const r of singlesArr){
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${escapeHtml(r.name)}</td><td>${r.wins}</td><td>${r.losses}</td><td>${r.games}</td><td>${r.winpct}%</td>`;
+        sb.appendChild(tr);
+      }
     }
 
-    // Old endpoint support: block POST / (prevent overwrite)
-    if (request.method === "POST" && path === "/") {
-      return json({ error: "This endpoint is disabled. Use /matches with auth." }, 405);
+    function escapeHtml(str){
+      return String(str ?? "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
     }
 
-    return text("Not found", 404);
-  }
-};
+    function matchTitle(m){
+      const gt = m.gameType || "doubles";
+      const ranked = !!m.ranked;
+      const phase = m.phase || (ranked ? "regular" : "unranked");
+
+      if (gt === "singles"){
+        const a = (m.teamA?.members||[]).map(keyName)[0];
+        const b = (m.teamB?.members||[]).map(keyName)[0];
+        return `<span class="badge gray">Singles</span> ${escapeHtml(playerNameByKey(a))} vs ${escapeHtml(playerNameByKey(b))}`;
+      }
+
+      const aMembers = (m.teamA?.members || []).map(keyName).filter(Boolean);
+      const bMembers = (m.teamB?.members || []).map(keyName).filter(Boolean);
+
+      let aLabel = m.teamA?.teamId ? (findTeamById(m.teamA.teamId)?.name || membersLabel(aMembers)) : membersLabel(aMembers);
+      let bLabel = m.teamB?.teamId ? (findTeamById(m.teamB.teamId)?.name || membersLabel(bMembers)) : membersLabel(bMembers);
+
+      const tag = ranked
+        ? `<span class="badge">Ranked • ${escapeHtml(phase)}</span>`
+        : `<span class="badge gray">Unranked</span>`;
+
+      return `${tag} ${escapeHtml(aLabel || "Team A")} vs ${escapeHtml(bLabel || "Team B")}`;
+    }
+
+    function matchFilterFn(m, filter){
+      const phase = (m.phase || "").toLowerCase();
+      const ranked = !!m.ranked;
+      const gt = (m.gameType || "doubles").toLowerCase();
+
+      if (filter === "ranked_preseason") return ranked && gt === "doubles" && phase === "preseason";
+      if (filter === "ranked_regular") return ranked && gt === "doubles" && phase === "regular";
+      if (filter === "ranked_championship") return ranked && gt === "doubles" && phase === "championship";
+      if (filter === "unranked_doubles") return !ranked && gt === "doubles";
+      if (filter === "singles") return gt === "singles";
+      return true;
+    }
+
+    async function quickEditMatch(matchId){
+      const m = matchesCache.find(x => x.id === matchId);
+      if (!m) return;
+
+      const isRankedDoubles = (m.gameType === "doubles" && m.ranked === true);
+      const currentPhase = (m.phase || "regular").toLowerCase();
+      const currentA = Number(m.teamA?.score ?? 0);
+      const currentB = Number(m.teamB?.score ?? 0);
+
+      const newScoreA = prompt(`Edit Score A (current: ${currentA})`, String(currentA));
+      if (newScoreA === null) return;
+      const newScoreB = prompt(`Edit Score B (current: ${currentB})`, String(currentB));
+      if (newScoreB === null) return;
+
+      let newPhase = currentPhase;
+      if (isRankedDoubles){
+        newPhase = prompt(`Edit Phase (current: ${currentPhase})\nEnter: preseason | regular | championship`, currentPhase);
+        if (newPhase === null) return;
+        newPhase = (newPhase || "").trim().toLowerCase();
+        if (!["preseason","regular","championship"].includes(newPhase)){
+          alert("Invalid phase. Must be preseason, regular, or championship.");
+          return;
+        }
+      }
+
+      const scoreA = Number(newScoreA);
+      const scoreB = Number(newScoreB);
+      if (!Number.isFinite(scoreA) || !Number.isFinite(scoreB)){
+        alert("Scores must be numbers.");
+        return;
+      }
+
+      const payload = {
+        phase: isRankedDoubles ? newPhase : (m.phase || "unranked"),
+        teamA: { score: scoreA, teamId: m.teamA?.teamId, members: Array.isArray(m.teamA?.members) ? m.teamA.members : [] },
+        teamB: { score: scoreB, teamId: m.teamB?.teamId, members: Array.isArray(m.teamB?.members) ? m.teamB.members : [] }
+      };
+
+      try{
+        await api(`/matches/${encodeURIComponent(matchId)}`, { method: "PUT", body: JSON.stringify(payload) });
+        alert("Match updated!");
+        await refreshAll(false);
+        setView("matches");
+        if (isRankedDoubles) $("matchesFilter").value = `ranked_${newPhase}`;
+        renderMatchesTable();
+        renderLeaderboards();
+      } catch(e){
+        alert("Update failed: " + e.message);
+      }
+    }
+
+    async function deleteMatch(matchId){
+      if (!confirm("Delete this match?")) return;
+      try{
+        await api(`/matches/${encodeURIComponent(matchId)}`, { method: "DELETE" });
+        await refreshAll(false);
+        renderMatchesTable();
+        renderLeaderboards();
+      } catch(e){
+        alert("Delete failed: " + e.message);
+      }
+    }
+
+    function renderMatchesTable(){
+      const filter = $("matchesFilter").value;
+      const tbody = $("matchesBody");
+      tbody.innerHTML = "";
+
+      const list = matchesCache
+        .filter(m => matchFilterFn(m, filter))
+        .slice()
+        .sort((a,b)=> new Date(b.dateTime) - new Date(a.dateTime));
+
+      $("matchesEmpty").style.display = list.length ? "none" : "block";
+
+      const s = getSession();
+      const myKey = s.player?.key || "";
+      const isAdmin = !!s.player?.isAdmin;
+
+      for (const m of list){
+        const d = new Date(m.dateTime);
+        const canEdit = isAdmin || (m.recordedByKey && m.recordedByKey === myKey);
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${d.toLocaleString()}</td>
+          <td>${matchTitle(m)}</td>
+          <td><span class="score-badge">${Number(m.teamA?.score ?? 0)} - ${Number(m.teamB?.score ?? 0)}</span></td>
+          <td>${escapeHtml(m.recordedBy || playerNameByKey(m.recordedByKey) || "—")}</td>
+          <td class="actions">
+            <button class="secondary" type="button" data-edit="${m.id}" ${canEdit ? "" : "disabled"}>Edit</button>
+            <button class="danger" type="button" data-del="${m.id}" ${canEdit ? "" : "disabled"}>Delete</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      }
+
+      tbody.querySelectorAll("button[data-edit]").forEach(btn=>{
+        btn.addEventListener("click", async ()=>{
+          const id = btn.getAttribute("data-edit");
+          await quickEditMatch(id);
+        });
+      });
+
+      tbody.querySelectorAll("button[data-del]").forEach(btn=>{
+        btn.addEventListener("click", async ()=>{
+          const id = btn.getAttribute("data-del");
+          await deleteMatch(id);
+        });
+      });
+    }
+
+    function renderTeamsTable(){
+      const tbody = $("teamsBody");
+      tbody.innerHTML = "";
+
+      const list = teamsMineCache.slice().sort((a,b)=>teamLabel(a).localeCompare(teamLabel(b)));
+      $("teamsEmpty").style.display = list.length ? "none" : "block";
+
+      for (const t of list){
+        const tr = document.createElement("tr");
+        const label = teamLabel(t);
+        const members = membersLabel(t.members);
+        tr.innerHTML = `<td>${escapeHtml(label)}</td><td>${escapeHtml(members)}</td><td><a href="./team.html?id=${encodeURIComponent(t.id)}">Open</a></td>`;
+        tbody.appendChild(tr);
+      }
+
+      const sel = $("teamInfoSelect");
+      sel.innerHTML = "";
+      if (!list.length){
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "No teams yet";
+        sel.appendChild(opt);
+      } else {
+        for (const t of list){
+          const opt = document.createElement("option");
+          opt.value = t.id;
+          opt.textContent = teamLabel(t);
+          sel.appendChild(opt);
+        }
+      }
+    }
+
+    async function unlock(){
+      const selKey = $("playerSelect").value;
+      const pin = ($("pinInput").value || "").trim();
+      if (!selKey){ alert("Pick a player."); return; }
+      if (!pin){ alert("Enter your PIN."); return; }
+
+      const picked = playersCache.find(p => p.key === selKey);
+      if (!picked){ alert("Player not found."); return; }
+
+      try{
+        const data = await api("/auth/pin", { method: "POST", body: JSON.stringify({ name: picked.name, pin }) });
+        setSession(data.token, data.player);
+        $("pinInput").value = "";
+        await refreshAll(false);
+        alert("Unlocked!");
+      } catch(e){
+        alert("Unlock failed: " + e.message);
+      }
+    }
+
+    async function createProfile(){
+      const invite = prompt("Enter invite code to create a profile:");
+      if (invite === null) return;
+
+      const name = prompt("Enter your unique player name:");
+      if (name === null) return;
+
+      const pin = prompt("Set your PIN (4–8 digits):");
+      if (pin === null) return;
+
+      try{
+        await api("/profile/create", { method: "POST", body: JSON.stringify({ createPin: (invite||"").trim(), name: (name||"").trim(), pin: (pin||"").trim() }) });
+        alert("Profile created! Now select your name and Unlock.");
+        await refreshAll(false);
+      } catch(e){
+        alert("Create profile failed: " + e.message);
+      }
+    }
+
+    async function managePlayersAdmin(){
+      const s = getSession();
+      if (!s.player?.isAdmin){ alert("Admin only."); return; }
+
+      const adminPin = prompt("Enter ADMIN PIN:");
+      if (adminPin === null) return;
+
+      const action = prompt("Action: reset | remove | setAdmin", "reset");
+      if (action === null) return;
+
+      const name = prompt("Player name (exact):");
+      if (name === null) return;
+
+      const payload = { adminPin: (adminPin||"").trim(), action: (action||"").trim(), name: (name||"").trim() };
+
+      if (payload.action === "reset"){
+        const newPin = prompt("New PIN (4–8 digits):");
+        if (newPin === null) return;
+        payload.newPin = (newPin||"").trim();
+      }
+
+      if (payload.action === "setAdmin"){
+        const makeAdmin = confirm("Make this player an admin? OK=yes, Cancel=no");
+        payload.makeAdmin = makeAdmin;
+      }
+
+      try{
+        await api("/admin/player", { method: "POST", body: JSON.stringify(payload) });
+        alert("Admin action complete.");
+        await refreshAll(false);
+      } catch(e){
+        alert("Admin action failed: " + e.message);
+      }
+    }
+
+    async function createTeam(){
+      if (!isSignedIn()){ alert("Sign in first."); return; }
+      const invite = prompt("Enter TEAM invite code (6969):");
+      if (invite === null) return;
+
+      const s = getSession();
+      const myKey = s.player.key;
+
+      const teammateName = prompt("Enter your teammate's name (must have a profile already):");
+      if (teammateName === null) return;
+      const teammateKey = keyName(teammateName);
+
+      if (!playersCache.some(p => p.key === teammateKey)){
+        alert("That player does not exist yet. Have them create a profile first.");
+        return;
+      }
+      if (teammateKey === myKey){
+        alert("Teammate must be a different player.");
+        return;
+      }
+
+      const teamDisplayName = prompt("Optional: Team name (leave blank to use 'Player + Player'):", "");
+
+      try{
+        const payload = { inviteCode: (invite||"").trim(), members: [myKey, teammateKey], name: (teamDisplayName||"").trim() };
+        await api("/teams", { method: "POST", body: JSON.stringify(payload) });
+        alert("Team created!");
+        await refreshAll(false);
+        setView("teams");
+      } catch(e){
+        alert("Create team failed: " + e.message);
+      }
+    }
+
+    async function saveMatch(){
+      if (!isSignedIn()){ alert("Please Unlock (sign in) to save matches."); return; }
+
+      const type = $("matchType").value;
+      const scoreA = Number($("scoreA").value);
+      const scoreB = Number($("scoreB").value);
+      if (!Number.isFinite(scoreA) || !Number.isFinite(scoreB)){ alert("Enter both scores."); return; }
+
+      let payload = null;
+
+      if (type === "ranked_doubles"){
+        const phase = $("phaseSelect").value;
+        const teamAId = $("teamASelect").value;
+        const teamBId = $("teamBSelect").value;
+        if (!teamAId){ alert("Create/select your Team A first."); return; }
+        if (!teamBId){ alert("Select Team B."); return; }
+        if (teamAId === teamBId){ alert("Team A and Team B must be different."); return; }
+
+        payload = { seasonId: activeSeasonId, phase, ranked: true, gameType: "doubles", teamA: { teamId: teamAId, score: scoreA }, teamB: { teamId: teamBId, score: scoreB } };
+      }
+
+      if (type === "unranked_doubles"){
+        payload = { seasonId: activeSeasonId, phase: "unranked", ranked: false, gameType: "doubles", teamA: { members: [$("udA1").value, $("udA2").value], score: scoreA }, teamB: { members: [$("udB1").value, $("udB2").value], score: scoreB } };
+      }
+
+      if (type === "singles"){
+        const a = $("sA").value;
+        const b = $("sB").value;
+        if (a === b){ alert("Singles players must be different."); return; }
+
+        payload = { seasonId: activeSeasonId, phase: "unranked", ranked: false, gameType: "singles", teamA: { members: [a], score: scoreA }, teamB: { members: [b], score: scoreB } };
+      }
+
+      try{
+        await api("/matches", { method: "POST", body: JSON.stringify(payload) });
+        clearEntryForm();
+        await refreshAll(false);
+        renderLeaderboards();
+        renderMatchesTable();
+        alert("Saved!");
+      } catch(e){
+        if (e.status === 409) alert("Duplicate match blocked (already logged recently).");
+        else alert("Save failed: " + e.message);
+      }
+    }
+
+    async function refreshAll(showAlert){
+      try{
+        await loadPlayers();
+        await renderPlayerSelect();
+        await loadTeamsAll();
+        await loadTeamsMine();
+        await loadMatchesAll();
+
+        renderUnrankedPickers();
+        renderRankedTeamPickers();
+        updateMatchTypeUI();
+
+        renderLeaderboards();
+        renderMatchesTable();
+        renderTeamsTable();
+
+        updateAuthUI();
+        setApiStatus(true, "ok");
+        if (showAlert) alert("Reloaded.");
+      } catch(e){
+        setApiStatus(false, "error");
+        if (showAlert) alert("Reload failed: " + e.message);
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      document.querySelectorAll(".tab").forEach(t=>{
+        t.addEventListener("click", ()=>{
+          setView(t.dataset.view);
+          if (t.dataset.view === "matches") renderMatchesTable();
+          if (t.dataset.view === "leaderboards") renderLeaderboards();
+          if (t.dataset.view === "teams") renderTeamsTable();
+        });
+      });
+
+      $("unlockBtn").addEventListener("click", unlock);
+      $("reloadBtn").addEventListener("click", ()=>refreshAll(true));
+      $("signOutBtn").addEventListener("click", async ()=>{ clearSession(); await refreshAll(false); });
+
+      $("createProfileBtn").addEventListener("click", createProfile);
+      $("managePlayersBtn").addEventListener("click", managePlayersAdmin);
+      $("createTeamBtn").addEventListener("click", createTeam);
+      $("refreshTeamsBtn").addEventListener("click", ()=>refreshAll(true));
+
+      $("saveMatchBtn").addEventListener("click", saveMatch);
+      $("clearFormBtn").addEventListener("click", clearEntryForm);
+
+      $("matchType").addEventListener("change", updateMatchTypeUI);
+      $("lbPhase").addEventListener("change", renderLeaderboards);
+      $("matchesFilter").addEventListener("change", renderMatchesTable);
+
+      $("openTeamPageBtn").addEventListener("click", ()=>{
+        const id = $("teamInfoSelect").value;
+        if (!id) return alert("Select a team first.");
+        window.open(`./team.html?id=${encodeURIComponent(id)}`, "_blank");
+      });
+
+      updateAuthUI();
+      setView("leaderboards");
+      await refreshAll(false);
+    });
+  </script>
+</body>
+</html>
