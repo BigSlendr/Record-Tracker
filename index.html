@@ -2,153 +2,212 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Cornhole Match Tracker</title>
+  <title>Cornhole League Tracker</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    :root {
-      --bg: #0f172a;
-      --panel: #111827;
-      --accent: #38bdf8;
-      --text: #e2e8f0;
-      --muted: #94a3b8;
-      --danger: #f97316;
-      --ok: #22c55e;
-      --warn: #fbbf24;
+    :root{
+      --bg:#0b1220;
+      --panel: rgba(2,6,23,.55);
+      --panel2: rgba(2,6,23,.35);
+      --border: rgba(148,163,184,.14);
+      --border2: rgba(148,163,184,.22);
+      --text:#e2e8f0;
+      --muted:#94a3b8;
+      --accent:#38bdf8;
+      --accent2:#22c55e;
+      --warn:#fbbf24;
+      --danger:#f97316;
+      --shadow: 0 20px 60px rgba(0,0,0,.35);
+      --radius: 16px;
     }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
+    *{box-sizing:border-box}
+    body{
+      margin:0;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: radial-gradient(circle at top, #1f2937 0%, #020617 60%);
-      color: var(--text);
-      min-height: 100vh;
-      padding: 1.5rem;
+      color:var(--text);
+      min-height:100vh;
+      padding: 18px;
     }
-    h1 { text-align: center; margin-bottom: 1rem; letter-spacing: .02em; }
-    .container {
-      max-width: 1200px;
+    h1{
+      text-align:center;
+      margin: 6px 0 14px;
+      letter-spacing:.02em;
+      font-weight: 900;
+    }
+    .container{
+      max-width: 1220px;
       margin: 0 auto;
-      display: grid;
-      grid-template-columns: 1fr 1.6fr;
-      gap: 1.5rem;
+      display:grid;
+      grid-template-columns: 420px 1fr;
+      gap: 16px;
+      align-items:start;
     }
-    .card {
-      background: rgba(2, 6, 23, 0.45);
-      border: 1px solid rgba(148, 163, 184, 0.12);
-      border-radius: 1rem;
-      padding: 1rem 1.25rem 1.25rem;
+    .card{
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 14px 16px;
       backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
     }
-    label {
-      font-size: .75rem;
-      text-transform: uppercase;
-      letter-spacing: .03em;
-      color: var(--muted);
-      display: block;
-      margin-bottom: .25rem;
+    .card h2{
+      margin: 0 0 8px;
+      font-size: 16px;
+      letter-spacing:.01em;
     }
-    input, textarea, select {
-      width: 100%;
-      background: rgba(15, 23, 42, 0.4);
-      border: 1px solid rgba(148, 163, 184, 0.2);
-      border-radius: .5rem;
-      padding: .45rem .6rem;
+    .tiny{font-size:.75rem;color:var(--muted)}
+    .muted{color:var(--muted)}
+    label{
+      font-size:.72rem;
+      text-transform:uppercase;
+      letter-spacing:.03em;
+      color:var(--muted);
+      display:block;
+      margin-bottom: 6px;
+    }
+    input, select, textarea{
+      width:100%;
+      background: rgba(15,23,42,.45);
+      border: 1px solid rgba(148,163,184,.22);
+      border-radius: 12px;
+      padding: 10px 10px;
       color: var(--text);
-      outline: none;
-      font-size: .85rem;
+      outline:none;
+      font-size: .9rem;
     }
-    textarea { padding: .4rem .6rem .45rem; }
-    input:focus, textarea:focus, select:focus { border-color: var(--accent); }
-    .row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; margin-bottom: .65rem; }
-    .team-box {
-      border: 1px solid rgba(148, 163, 184, 0.2);
-      border-radius: .75rem;
-      padding: .6rem .7rem .7rem;
-      background: rgba(15, 23, 42, 0.3);
-      margin-bottom: .75rem;
+    input:focus, select:focus, textarea:focus{border-color: var(--accent)}
+    textarea{min-height: 84px; resize: vertical}
+    .row{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 10px;
     }
-    .team-title { font-weight: 800; margin-bottom: .35rem; }
-    button {
+    .row1{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:10px}
+    .box{
+      background: var(--panel2);
+      border: 1px solid rgba(148,163,184,.16);
+      border-radius: 14px;
+      padding: 10px;
+    }
+    .actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    button{
+      border:none;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-weight: 900;
+      cursor:pointer;
       background: var(--accent);
-      border: none;
-      border-radius: .5rem;
-      padding: .5rem .75rem;
-      color: #0f172a;
-      font-weight: 800;
-      cursor: pointer;
+      color: #06121d;
       white-space: nowrap;
     }
-    button.secondary {
-      background: rgba(148, 163, 184, 0.15);
-      color: #fff;
-      border: 1px solid rgba(148, 163, 184, 0.25);
+    button.secondary{
+      background: rgba(148,163,184,.16);
+      color: var(--text);
+      border: 1px solid rgba(148,163,184,.22);
     }
-    button.danger {
-      background: rgba(249, 115, 22, 0.15);
-      color: #fff;
-      border: 1px solid rgba(249, 115, 22, 0.5);
+    button.danger{
+      background: rgba(249,115,22,.14);
+      color: var(--text);
+      border: 1px solid rgba(249,115,22,.45);
     }
-    button:disabled { opacity: .45; cursor: not-allowed; }
-    .actions { display:flex; gap:.4rem; flex-wrap:wrap; align-items:center; }
-    .topbar { display:flex; justify-content: space-between; align-items: center; margin-bottom: .5rem; }
-    table { width: 100%; border-collapse: collapse; margin-top: .5rem; font-size: .78rem; }
-    th, td {
-      border-bottom: 1px solid rgba(148, 163, 184, 0.1);
-      padding: .35rem .35rem .45rem;
-      text-align: left;
-      vertical-align: top;
+    button:disabled{opacity:.45;cursor:not-allowed}
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,.22);
+      background: rgba(2,6,23,.22);
+      color: var(--text);
+      font-size: .78rem;
     }
-    th { font-size: .7rem; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); }
-    .score-badge {
-      display: inline-block;
-      background: rgba(56, 189, 248, 0.15);
-      border: 1px solid rgba(56, 189, 248, 0.3);
-      padding: .15rem .4rem;
-      border-radius: .35rem;
-      font-weight: 800;
-      font-size: .68rem;
+    .pill .dot{
+      width:8px;height:8px;border-radius:999px;background:var(--warn);
     }
-    .empty { text-align: center; color: var(--muted); padding: 1rem 0 0.3rem; font-size: .8rem; }
-    .lb-row { display: grid; grid-template-columns: 1.2fr .6fr .6fr .6fr .6fr; gap: 10px; padding: 6px 0; }
-    .lb-row + .lb-row { border-top: 1px solid rgba(148,163,184,.1); }
-    .lb-head { color: var(--muted); font-size:.8rem; }
-    .summary-bar {
-      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
-      background: rgba(2,6,23,.35);
-      border: 1px dashed rgba(148,163,184,.25);
-      padding: 8px 10px;
-      border-radius: 10px;
-      margin-top: 6px;
+    .dot.ok{background: var(--accent2)}
+    .dot.bad{background: var(--danger)}
+    .tabs{
+      display:flex; gap:8px; flex-wrap:wrap; align-items:center;
+      margin-bottom: 10px;
     }
-    .pill { display:inline-flex; align-items: baseline; gap:8px; border:1px solid rgba(148,163,184,.25); border-radius: 999px; padding: 6px 10px; }
-    .pill .val { font-weight: 900; }
-    .hint { color: var(--muted); font-size: .75rem; margin: .25rem 0 0; }
-    .tiny { color: var(--muted); font-size: .72rem; }
-    .ok { color: var(--ok); }
-    .warn { color: var(--warn); }
+    .tab{
+      background: rgba(148,163,184,.14);
+      border: 1px solid rgba(148,163,184,.22);
+      color: var(--text);
+    }
+    .tab.active{
+      background: var(--accent);
+      border-color: transparent;
+      color: #06121d;
+    }
+    .subtabs{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin: 6px 0 10px;}
+    .subtab{padding:8px 10px;border-radius:999px;font-weight:800}
+    .subtab.active{background: rgba(56,189,248,.18); border:1px solid rgba(56,189,248,.35);}
 
-    /* Tabs */
-    .tab-active {
-      background: var(--accent) !important;
-      color: #0f172a !important;
-      border: none !important;
+    table{width:100%;border-collapse:collapse;margin-top:6px;font-size:.83rem}
+    th,td{border-bottom:1px solid rgba(148,163,184,.12);padding:10px 8px;vertical-align:top}
+    th{color:var(--muted);text-transform:uppercase;font-size:.72rem;letter-spacing:.03em}
+    .badge{
+      display:inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size:.72rem;
+      font-weight: 900;
+      border: 1px solid rgba(56,189,248,.28);
+      background: rgba(56,189,248,.12);
+      margin-right: 6px;
     }
-
-    @media (max-width: 960px) { .container { grid-template-columns: 1fr; } }
+    .badge.warn{border-color: rgba(251,191,36,.28);background: rgba(251,191,36,.12)}
+    .badge.ok{border-color: rgba(34,197,94,.28);background: rgba(34,197,94,.12)}
+    .badge.dim{border-color: rgba(148,163,184,.22);background: rgba(148,163,184,.10)}
+    .score{
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+      border: 1px solid rgba(56,189,248,.25);
+      background: rgba(56,189,248,.12);
+      padding: 5px 10px;
+      border-radius: 12px;
+      font-weight: 900;
+      font-size:.8rem;
+    }
+    .grid2{display:grid;grid-template-columns: 1fr 1fr;gap:10px}
+    .empty{padding: 18px;color:var(--muted);text-align:center}
+    .lb-row{display:grid;grid-template-columns: 1.2fr .6fr .6fr .6fr .6fr;gap:10px;padding:8px 0}
+    .lb-row + .lb-row{border-top:1px solid rgba(148,163,184,.12)}
+    .lb-head{color:var(--muted);font-size:.8rem}
+    .rightTop{
+      display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;
+      margin-bottom: 8px;
+    }
+    .rightTop h2{margin:0}
+    @media (max-width: 980px){
+      .container{grid-template-columns:1fr}
+    }
   </style>
 </head>
 <body>
-  <h1>Cornhole Match Tracker 🟦🟧</h1>
+  <h1>Cornhole League Tracker 🟦🟧</h1>
 
   <div class="container">
-    <!-- Entry -->
-    <div class="card">
-      <h2 style="margin-top:0;">New Match</h2>
-      <p class="tiny" style="margin-top:-.3rem;margin-bottom:.75rem;">Quick entry: players + score. Date/time is saved automatically.</p>
 
-      <div class="team-box">
-        <div class="team-title">Sign In</div>
-        <div class="row" style="margin-bottom:.5rem;">
+    <!-- LEFT: Entry / Auth -->
+    <div class="card">
+      <h2>Quick Entry</h2>
+      <div class="tiny" style="margin-top:-4px;margin-bottom:10px;">
+        Sign in → log ranked doubles (preseason/regular/championship), unranked doubles, or unranked singles.
+      </div>
+
+      <div class="box" style="margin-bottom:12px;">
+        <div class="rightTop" style="margin-bottom:8px;">
+          <div style="font-weight:900;">Account</div>
+          <span class="pill"><span id="apiDot" class="dot"></span><span id="apiStatus">checking…</span></span>
+        </div>
+
+        <div class="row">
           <div>
             <label for="playerSelect">Player</label>
             <select id="playerSelect"></select>
@@ -158,324 +217,1182 @@
             <input id="pinInput" type="password" inputmode="numeric" placeholder="Enter your PIN" />
           </div>
         </div>
+
         <div class="actions">
           <button id="signInBtn" type="button">Unlock</button>
           <button id="signOutBtn" type="button" class="secondary" style="display:none;">Sign Out</button>
-          <button id="reloadPlayersBtn" type="button" class="secondary">Reload Players</button>
+          <button id="reloadBtn" type="button" class="secondary">Reload</button>
+        </div>
+
+        <div class="actions" style="margin-top:8px;">
           <button id="createProfileBtn" type="button" class="secondary">Create Player Profile</button>
           <button id="managePlayersBtn" type="button" class="danger">Manage Players (Admin)</button>
         </div>
-        <div id="authStatus" class="hint">Not signed in.</div>
-        <div class="hint tiny">API: <span id="apiStatus" class="warn">checking…</span></div>
-        <div class="hint tiny">PIN rules: 4–8 digits.</div>
+
+        <div id="authStatus" class="tiny" style="margin-top:8px;color:var(--muted);">Not signed in.</div>
       </div>
 
-      <div class="row">
-        <div>
-          <label for="teamAPlayers">Team A Players</label>
-          <textarea id="teamAPlayers" rows="2" placeholder="Mike, Jess"></textarea>
+      <div class="box">
+        <div class="row">
+          <div>
+            <label for="matchMode">Match Type</label>
+            <select id="matchMode">
+              <option value="ranked_doubles">Ranked Doubles</option>
+              <option value="unranked_doubles">Unranked Doubles</option>
+              <option value="singles_unranked">Singles (Unranked)</option>
+            </select>
+          </div>
+          <div id="phaseWrap">
+            <label for="phaseSelect">Season Phase</label>
+            <select id="phaseSelect">
+              <option value="preseason">Preseason</option>
+              <option value="regular" selected>Regular Season</option>
+              <option value="championship">Championship</option>
+            </select>
+          </div>
         </div>
-        <div>
-          <label for="teamBPlayers">Team B Players</label>
-          <textarea id="teamBPlayers" rows="2" placeholder="Chris, Sam"></textarea>
+
+        <!-- Ranked doubles -->
+        <div id="rankedBlock">
+          <div class="row">
+            <div>
+              <label for="teamASelect">Team A (yours)</label>
+              <select id="teamASelect"></select>
+              <div class="tiny" id="teamAHint" style="margin-top:6px;"></div>
+            </div>
+            <div>
+              <label for="teamBSelect">Team B</label>
+              <select id="teamBSelect"></select>
+              <div class="tiny" id="teamBHint" style="margin-top:6px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Unranked doubles -->
+        <div id="unrankedBlock" style="display:none;">
+          <div class="row">
+            <div>
+              <label for="myTeammate">Your Teammate</label>
+              <select id="myTeammate"></select>
+            </div>
+            <div>
+              <label for="opp1">Opponent 1</label>
+              <select id="opp1"></select>
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label for="opp2">Opponent 2</label>
+              <select id="opp2"></select>
+            </div>
+            <div>
+              <label class="muted">Unranked</label>
+              <div class="tiny">Stored as ad-hoc teams, not added to ranked team standings.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Singles unranked -->
+        <div id="singlesBlock" style="display:none;">
+          <div class="row">
+            <div>
+              <label for="singlesMe">Player A (you)</label>
+              <input id="singlesMe" disabled />
+            </div>
+            <div>
+              <label for="singlesOpp">Player B</label>
+              <select id="singlesOpp"></select>
+            </div>
+          </div>
+          <div class="tiny">Singles are always unranked (tracked on a separate leaderboard).</div>
+        </div>
+
+        <div class="row" style="margin-top:10px;">
+          <div>
+            <label for="scoreA">Score A</label>
+            <input id="scoreA" type="number" min="0" max="21" placeholder="21" />
+          </div>
+          <div>
+            <label for="scoreB">Score B</label>
+            <input id="scoreB" type="number" min="0" max="21" placeholder="15" />
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="saveBtn" type="button">Save Match</button>
+          <button id="resetEntryBtn" type="button" class="secondary">Clear</button>
+        </div>
+
+        <div class="tiny" style="margin-top:10px;">
+          Duplicate protection is automatic (blocks accidental double-entries).
         </div>
       </div>
-
-      <div class="row">
-        <div>
-          <label for="teamAScore">Team A Score</label>
-          <input type="number" id="teamAScore" min="0" max="21" placeholder="21" />
-        </div>
-        <div>
-          <label for="teamBScore">Team B Score</label>
-          <input type="number" id="teamBScore" min="0" max="21" placeholder="15" />
-        </div>
-      </div>
-
-      <div class="actions">
-        <button id="saveMatchBtn" type="button">Save Match</button>
-      </div>
-
-      <p class="hint">Tip: you can edit/delete only matches you logged (admin can override).</p>
     </div>
 
-    <!-- Right Side: Tabs -->
+    <!-- RIGHT: Dashboard Tabs -->
     <div class="card">
-      <div class="topbar">
+      <div class="rightTop">
         <h2 style="margin:0;">Dashboard</h2>
-        <div class="actions" style="justify-content:flex-end;">
-          <button id="tabLeaderboards" class="secondary" type="button">Leaderboards</button>
-          <button id="tabHistory" class="secondary" type="button">Match History</button>
+        <div class="actions">
+          <span class="pill"><span class="dot ok"></span><span id="seasonPill">Season: —</span></span>
+          <span class="pill"><span class="dot"></span><span id="countPill">Matches: —</span></span>
         </div>
       </div>
 
-      <!-- LEADERBOARDS TAB -->
+      <div class="tabs">
+        <button id="tabLeaderboards" class="tab active" type="button">Leaderboards</button>
+        <button id="tabMatches" class="tab" type="button">Matches</button>
+        <button id="tabTeams" class="tab" type="button">Teams</button>
+        <button id="tabTeamInfo" class="tab" type="button">Team Info</button>
+      </div>
+
+      <!-- LEADERBOARDS VIEW -->
       <div id="viewLeaderboards">
-        <div class="summary-bar">
-          <div class="pill"><span class="val" id="totalMatches">0</span> <span class="muted">Total Matches Played</span></div>
+        <div class="box" style="margin-bottom:12px;">
+          <div class="row">
+            <div>
+              <label for="lbPhase">Ranked Phase</label>
+              <select id="lbPhase">
+                <option value="preseason">Preseason</option>
+                <option value="regular" selected>Regular Season</option>
+                <option value="championship">Championship</option>
+              </select>
+            </div>
+            <div>
+              <label class="muted">Mode</label>
+              <div class="tiny">Ranked doubles standings are tracked per phase.</div>
+            </div>
+          </div>
         </div>
 
-        <h2 style="margin:10px 0 0">Individual Leaderboard</h2>
-        <div class="lb lb-head lb-row"><div>Player</div><div>Wins</div><div>Losses</div><div>Games</div><div>Win %</div></div>
+        <h2 style="margin:0 0 8px;">Ranked Team Leaderboard (Doubles)</h2>
+        <div class="lb-head lb-row"><div>Team</div><div>Wins</div><div>Losses</div><div>Games</div><div>Win %</div></div>
+        <div id="lbTeams"></div>
+
+        <h2 style="margin:14px 0 8px;">Ranked Individual Leaderboard (Doubles)</h2>
+        <div class="lb-head lb-row"><div>Player</div><div>Wins</div><div>Losses</div><div>Games</div><div>Win %</div></div>
         <div id="lbIndividuals"></div>
 
-        <h2 style="margin:14px 0 0">Team Leaderboard</h2>
-        <div class="lb lb-head lb-row"><div>Team (members)</div><div>Wins</div><div>Losses</div><div>Games</div><div>Win %</div></div>
-        <div id="lbTeams"></div>
+        <h2 style="margin:14px 0 8px;">Singles Leaderboard (Unranked)</h2>
+        <div class="lb-head lb-row"><div>Player</div><div>Wins</div><div>Losses</div><div>Games</div><div>Win %</div></div>
+        <div id="lbSingles"></div>
       </div>
 
-      <!-- HISTORY TAB -->
-      <div id="viewHistory" style="display:none;">
-        <div class="topbar" style="margin-top:.25rem;">
-          <small id="matchCount" style="color:var(--muted);"></small>
+      <!-- MATCHES VIEW -->
+      <div id="viewMatches" style="display:none;">
+        <div class="subtabs">
+          <button class="secondary subtab active" id="m_preseason" type="button">Preseason</button>
+          <button class="secondary subtab" id="m_regular" type="button">Regular</button>
+          <button class="secondary subtab" id="m_championship" type="button">Championship</button>
+          <button class="secondary subtab" id="m_unranked" type="button">Unranked Doubles</button>
+          <button class="secondary subtab" id="m_singles" type="button">Singles (Unranked)</button>
         </div>
+
+        <div class="tiny" id="matchesHint" style="margin-bottom:10px;color:var(--muted);"></div>
 
         <table>
           <thead>
-            <tr><th>Date</th><th>Teams / Players</th><th>Score</th><th>Logged By</th><th>Actions</th></tr>
+            <tr>
+              <th>Date</th>
+              <th>Teams / Players</th>
+              <th>Score</th>
+              <th>Logged By</th>
+              <th>Actions</th>
+            </tr>
           </thead>
           <tbody id="historyBody"></tbody>
         </table>
+        <div id="emptyState" class="empty" style="display:none;">No matches in this view yet.</div>
+      </div>
 
-        <div id="emptyState" class="empty" style="display:none;">No matches yet — add your first one!</div>
+      <!-- TEAMS VIEW -->
+      <div id="viewTeams" style="display:none;">
+        <div class="box" style="margin-bottom:12px;">
+          <div class="rightTop" style="margin-bottom:6px;">
+            <div style="font-weight:900;">Create a Team (2 players)</div>
+            <button id="createTeamBtn" class="secondary" type="button">Create Team</button>
+          </div>
+          <div class="tiny">Any player can create a team with invite code <b>6969</b>. You must be one of the two players.</div>
+        </div>
+
+        <div class="grid2">
+          <div class="box">
+            <div style="font-weight:900;margin-bottom:8px;">My Teams</div>
+            <div id="myTeamsList" class="tiny"></div>
+          </div>
+          <div class="box">
+            <div style="font-weight:900;margin-bottom:8px;">All Teams</div>
+            <div id="allTeamsList" class="tiny"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TEAM INFO VIEW -->
+      <div id="viewTeamInfo" style="display:none;">
+        <div class="box" style="margin-bottom:12px;">
+          <div class="row">
+            <div>
+              <label for="teamInfoSelect">Select Team</label>
+              <select id="teamInfoSelect"></select>
+              <div class="tiny" id="teamInfoAccess" style="margin-top:6px;"></div>
+            </div>
+            <div>
+              <label class="muted">Edit Rules</label>
+              <div class="tiny">Only the two teammates can edit team info.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="box">
+          <div class="row">
+            <div>
+              <label for="teamInfoName">Team Name</label>
+              <input id="teamInfoName" placeholder="Team name" />
+            </div>
+            <div>
+              <label for="teamInfoHome">Home Court</label>
+              <input id="teamInfoHome" placeholder="Backyard / Venue" />
+            </div>
+          </div>
+          <div class="row1">
+            <div>
+              <label for="teamInfoBio">Team Bio / Notes</label>
+              <textarea id="teamInfoBio" placeholder="Style, history, trash talk..."></textarea>
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label for="teamInfoColor">Accent Color (optional)</label>
+              <input id="teamInfoColor" placeholder="#38bdf8" />
+            </div>
+            <div class="actions" style="align-items:flex-end;">
+              <button id="saveTeamInfoBtn" type="button">Save Team Info</button>
+              <button id="setDefaultTeamBtn" type="button" class="secondary">Set as My Default Team</button>
+            </div>
+          </div>
+          <div class="tiny" id="teamInfoSaved" style="margin-top:6px;color:var(--muted);"></div>
+        </div>
       </div>
     </div>
+
   </div>
 
   <script>
-    // Your Worker URL
+    // ===========================
+    // CONFIG
+    // ===========================
     const API = "https://solitary-moon-7578.michaelamarino16.workers.dev";
 
-    // Local session
-    const LS_TOKEN = "ct_device_token_v1";
-    const LS_PLAYER = "ct_player_v1";
+    const LS_TOKEN = "ct_device_token_v3";
+    const LS_PLAYER = "ct_player_v3";
+    const LS_ACTIVE_VIEW = "ct_view_v3";
+    const LS_MATCHES_TAB = "ct_matches_tab_v3";
 
-    let editingId = null;
+    let activeSeasonId = null;
 
-    function isValidPin(pin) {
-      return /^[0-9]{4,8}$/.test(pin || "");
-    }
+    // cached
+    let playersCache = [];
+    let teamsAllCache = [];
+    let teamsMineCache = [];
+    let matchesCache = [];
 
-    function getSession() {
+    // ===========================
+    // HELPERS
+    // ===========================
+    const $ = (id) => document.getElementById(id);
+
+    function keyName(name){ return (name || "").trim().toLowerCase(); }
+
+    function getSession(){
       const token = localStorage.getItem(LS_TOKEN) || "";
       let player = null;
       try { player = JSON.parse(localStorage.getItem(LS_PLAYER) || "null"); } catch {}
       return { token, player };
     }
 
-    function setSession(token, player) {
+    function setSession(token, player){
       localStorage.setItem(LS_TOKEN, token);
       localStorage.setItem(LS_PLAYER, JSON.stringify(player));
       updateAuthUI();
     }
 
-    function clearSession() {
+    function clearSession(){
       localStorage.removeItem(LS_TOKEN);
       localStorage.removeItem(LS_PLAYER);
       updateAuthUI();
     }
 
-    async function api(path, opts = {}) {
+    function isSignedIn(){
+      const s = getSession();
+      return !!(s.token && s.player && s.player.key);
+    }
+
+    async function api(path, opts = {}){
       const { token } = getSession();
       const headers = { "Content-Type": "application/json", ...(opts.headers || {}) };
       if (token) headers["Authorization"] = `Bearer ${token}`;
-
       const res = await fetch(`${API}${path}`, { ...opts, headers });
 
       const ct = res.headers.get("content-type") || "";
       const isJson = ct.includes("application/json");
       const data = isJson ? await res.json() : await res.text();
 
-      if (!res.ok) {
+      if (!res.ok){
         const msg = (data && data.error) ? data.error : (typeof data === "string" ? data : `HTTP ${res.status}`);
-        throw new Error(msg);
+        const err = new Error(msg);
+        err.status = res.status;
+        throw err;
       }
       return data;
     }
 
-    function setTab(which) {
-      const vL = document.getElementById("viewLeaderboards");
-      const vH = document.getElementById("viewHistory");
-      const bL = document.getElementById("tabLeaderboards");
-      const bH = document.getElementById("tabHistory");
-
-      const showLeaderboards = which === "leaderboards";
-      vL.style.display = showLeaderboards ? "block" : "none";
-      vH.style.display = showLeaderboards ? "none" : "block";
-
-      bL.classList.toggle("tab-active", showLeaderboards);
-      bH.classList.toggle("tab-active", !showLeaderboards);
+    function setApiStatus(ok, text){
+      const dot = $("apiDot");
+      const el = $("apiStatus");
+      el.textContent = text;
+      dot.classList.toggle("ok", !!ok);
+      dot.classList.toggle("bad", !ok);
+      dot.classList.toggle("dot", true);
     }
 
-    async function checkApiHealth() {
-      const el = document.getElementById("apiStatus");
-      try {
-        const data = await api("/players", { method: "GET" });
-        const count = data.players ? data.players.length : 0;
-        el.textContent = `ok (players: ${count})`;
-        el.classList.remove("warn"); el.classList.add("ok");
-      } catch (e) {
-        el.textContent = `error: ${e.message}`;
-        el.classList.remove("ok"); el.classList.add("warn");
+    function showToast(msg){
+      // lightweight: use alert for now
+      alert(msg);
+    }
+
+    function setView(view){
+      const views = [
+        ["Leaderboards","viewLeaderboards","tabLeaderboards"],
+        ["Matches","viewMatches","tabMatches"],
+        ["Teams","viewTeams","tabTeams"],
+        ["TeamInfo","viewTeamInfo","tabTeamInfo"]
+      ];
+      for (const [name, vid, tid] of views){
+        $(vid).style.display = (name === view) ? "block" : "none";
+        $(tid).classList.toggle("active", name === view);
       }
+      localStorage.setItem(LS_ACTIVE_VIEW, view);
     }
 
-    async function loadPlayers() {
+    function setMatchesSubtab(which){
+      const ids = ["preseason","regular","championship","unranked","singles"];
+      for (const id of ids){
+        $(`m_${id}`).classList.toggle("active", id === which);
+      }
+      localStorage.setItem(LS_MATCHES_TAB, which);
+      renderMatchesTable(); // re-render based on which
+    }
+
+    function prettyPhase(phase){
+      if (phase === "preseason") return "Preseason";
+      if (phase === "regular") return "Regular";
+      if (phase === "championship") return "Championship";
+      if (phase === "unranked") return "Unranked";
+      return phase || "—";
+    }
+
+    function safeText(s){ return (s || "").toString(); }
+
+    function formatTeamLabel(team){
+      if (!team) return "—";
+      return team.name || team.id;
+    }
+
+    function playerNameByKey(k){
+      const p = playersCache.find(x => x.key === k);
+      return p ? p.name : k;
+    }
+
+    function membersLabel(memberKeys){
+      const names = (memberKeys || []).map(playerNameByKey).filter(Boolean);
+      return names.join(" + ") || "—";
+    }
+
+    // ===========================
+    // LOADERS
+    // ===========================
+    async function loadPlayers(){
       const data = await api("/players", { method: "GET" });
-      return data.players || [];
+      playersCache = data.players || [];
+      activeSeasonId = data.activeSeasonId || activeSeasonId || "2026";
+      $("seasonPill").textContent = `Season: ${activeSeasonId}`;
+      return playersCache;
     }
 
-    async function loadMatches() {
-      return await api("/matches", { method: "GET" });
+    async function loadTeamsAll(){
+      const data = await api("/teams", { method: "GET" });
+      teamsAllCache = data.teams || [];
+      return teamsAllCache;
     }
 
-    // ----- Leaderboards (team = members) -----
-    function calcLeaderboards(matches) {
-      const indiv = new Map();
-      const teams = new Map();
-
-      const normalizePlayer = (p) => (p || "").trim();
-      const teamLabel = (players) => {
-        const cleaned = (players || [])
-          .map(normalizePlayer)
-          .filter(Boolean)
-          .sort((a, b) => a.localeCompare(b));
-        return cleaned.length ? cleaned.join(" + ") : "Unknown Team";
-      };
-
-      const ensure = (map, name) => {
-        const key = name.toLowerCase();
-        if (!map.has(key)) map.set(key, { name, wins: 0, losses: 0, games: 0 });
-        return map.get(key);
-      };
-
-      for (const m of matches) {
-        const a = +m.teamA.score || 0;
-        const b = +m.teamB.score || 0;
-        const win = a > b ? "A" : b > a ? "B" : "TIE";
-
-        const aP = (m.teamA.players || []).map(normalizePlayer).filter(Boolean);
-        const bP = (m.teamB.players || []).map(normalizePlayer).filter(Boolean);
-
-        const aTeamName = teamLabel(aP);
-        const bTeamName = teamLabel(bP);
-
-        for (const p of aP) ensure(indiv, p).games++;
-        for (const p of bP) ensure(indiv, p).games++;
-        ensure(teams, aTeamName).games++;
-        ensure(teams, bTeamName).games++;
-
-        if (win === "A") {
-          for (const p of aP) ensure(indiv, p).wins++;
-          for (const p of bP) ensure(indiv, p).losses++;
-          ensure(teams, aTeamName).wins++;
-          ensure(teams, bTeamName).losses++;
-        } else if (win === "B") {
-          for (const p of bP) ensure(indiv, p).wins++;
-          for (const p of aP) ensure(indiv, p).losses++;
-          ensure(teams, bTeamName).wins++;
-          ensure(teams, aTeamName).losses++;
-        }
+    async function loadTeamsMine(){
+      if (!isSignedIn()){
+        teamsMineCache = [];
+        return teamsMineCache;
       }
-
-      const arr = (m) => Array.from(m.values())
-        .map(x => ({ ...x, winpct: x.games ? ((x.wins / x.games) * 100).toFixed(0) : 0 }))
-        .sort((a, b) => b.wins - a.wins || b.winpct - a.winpct || a.name.localeCompare(b.name));
-
-      return { indivArr: arr(indiv), teamArr: arr(teams) };
+      const data = await api("/teams?mine=1", { method: "GET" });
+      teamsMineCache = data.teams || [];
+      return teamsMineCache;
     }
 
-    function updateAuthUI() {
+    async function loadMatches(){
+      // We'll cache all matches and filter client-side for views (simple)
+      matchesCache = await api("/matches", { method: "GET" });
+      $("countPill").textContent = `Matches: ${matchesCache.length}`;
+      return matchesCache;
+    }
+
+    // ===========================
+    // AUTH UI
+    // ===========================
+    function updateAuthUI(){
       const { token, player } = getSession();
-      const status = document.getElementById("authStatus");
-      const pinInput = document.getElementById("pinInput");
-      const signOutBtn = document.getElementById("signOutBtn");
-
-      if (token && player) {
-        status.textContent = `Signed in as ${player.name}${player.isAdmin ? " (Admin)" : ""}.`;
-        pinInput.value = "";
-        pinInput.placeholder = "Unlocked";
-        pinInput.disabled = true;
-        signOutBtn.style.display = "inline-block";
+      if (token && player){
+        $("authStatus").textContent = `Signed in as ${player.name}${player.isAdmin ? " (Admin)" : ""}.`;
+        $("pinInput").value = "";
+        $("pinInput").disabled = true;
+        $("signOutBtn").style.display = "inline-block";
+        $("singlesMe").value = player.name;
       } else {
-        status.textContent = "Not signed in.";
-        pinInput.disabled = false;
-        pinInput.placeholder = "Enter your PIN";
-        signOutBtn.style.display = "none";
+        $("authStatus").textContent = "Not signed in.";
+        $("pinInput").disabled = false;
+        $("signOutBtn").style.display = "none";
+        $("singlesMe").value = "";
       }
     }
 
-    async function renderPlayerSelect() {
-      const sel = document.getElementById("playerSelect");
+    async function renderPlayerSelect(){
+      const sel = $("playerSelect");
       sel.innerHTML = "";
 
-      const players = await loadPlayers();
-
-      if (!players.length) {
+      if (!playersCache.length){
         const opt = document.createElement("option");
         opt.value = "";
-        opt.textContent = "No players found (create a profile)";
+        opt.textContent = "No players (create a profile)";
         sel.appendChild(opt);
         return;
       }
 
-      for (const p of players) {
+      for (const p of playersCache){
         const opt = document.createElement("option");
         opt.value = p.key;
         opt.textContent = p.name + (p.isAdmin ? " (Admin)" : "");
         sel.appendChild(opt);
       }
 
-      const session = getSession();
-      if (session.player?.key && players.some(p => p.key === session.player.key)) {
-        sel.value = session.player.key;
+      const s = getSession();
+      if (s.player?.key && playersCache.some(p => p.key === s.player.key)){
+        sel.value = s.player.key;
+      } else {
+        sel.selectedIndex = 0;
       }
     }
 
-    async function signIn() {
-      const sel = document.getElementById("playerSelect");
-      const pin = (document.getElementById("pinInput").value || "").trim();
+    // ===========================
+    // ENTRY FORM RENDERING
+    // ===========================
+    function renderEntryMode(){
+      const mode = $("matchMode").value;
 
-      if (!sel.value) { alert("Pick a player first."); return; }
-      if (!pin) { alert("Enter your PIN."); return; }
-      if (!isValidPin(pin)) { alert("PIN must be 4–8 digits."); return; }
+      $("rankedBlock").style.display = (mode === "ranked_doubles") ? "block" : "none";
+      $("unrankedBlock").style.display = (mode === "unranked_doubles") ? "block" : "none";
+      $("singlesBlock").style.display = (mode === "singles_unranked") ? "block" : "none";
 
-      const players = await loadPlayers();
-      const picked = players.find(p => p.key === sel.value);
-      if (!picked) { alert("Player not found."); return; }
-
-      const data = await api("/auth/pin", {
-        method: "POST",
-        body: JSON.stringify({ name: picked.name, pin })
-      });
-
-      setSession(data.token, data.player);
-      await renderMatches();
+      $("phaseWrap").style.display = (mode === "ranked_doubles") ? "block" : "none";
     }
 
-    async function createPlayerProfile() {
-      const inviteCode = (prompt("Invite code to create a player profile:") || "").trim();
+    function renderUnrankedPlayerDropdowns(){
+      // teammate + opp1 + opp2 + singlesOpp
+      const s = getSession();
+      const myKey = s.player?.key || "";
+
+      const fill = (el, filterFn) => {
+        el.innerHTML = "";
+        const list = playersCache.filter(filterFn || (() => true));
+        for (const p of list){
+          const opt = document.createElement("option");
+          opt.value = p.key;
+          opt.textContent = p.name;
+          el.appendChild(opt);
+        }
+      };
+
+      fill($("myTeammate"), (p) => p.key !== myKey);
+      fill($("opp1"), (p) => p.key !== myKey);
+      fill($("opp2"), (p) => p.key !== myKey);
+      fill($("singlesOpp"), (p) => p.key !== myKey);
+
+      // quick defaults
+      if ($("opp1").options.length) $("opp1").selectedIndex = 0;
+      if ($("opp2").options.length) $("opp2").selectedIndex = Math.min(1, $("opp2").options.length - 1);
+      if ($("singlesOpp").options.length) $("singlesOpp").selectedIndex = 0;
+    }
+
+    function renderRankedTeamDropdowns(){
+      const s = getSession();
+      const myDefault = s.player?.defaultTeamId || null;
+
+      // Team A: mine only
+      const teamA = $("teamASelect");
+      teamA.innerHTML = "";
+      if (!teamsMineCache.length){
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "No teams yet (create one in Teams tab)";
+        teamA.appendChild(opt);
+      } else {
+        for (const t of teamsMineCache){
+          const opt = document.createElement("option");
+          opt.value = t.id;
+          opt.textContent = t.name;
+          teamA.appendChild(opt);
+        }
+        // set default if exists
+        if (myDefault && teamsMineCache.some(t => t.id === myDefault)){
+          teamA.value = myDefault;
+        } else {
+          teamA.selectedIndex = 0;
+        }
+      }
+
+      // Team B: all teams (excluding selected A if possible)
+      const teamB = $("teamBSelect");
+      const selectedA = teamA.value;
+      teamB.innerHTML = "";
+      const listB = teamsAllCache.filter(t => t.id !== selectedA);
+      if (!listB.length){
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "No other teams found";
+        teamB.appendChild(opt);
+      } else {
+        for (const t of listB){
+          const opt = document.createElement("option");
+          opt.value = t.id;
+          opt.textContent = t.name;
+          teamB.appendChild(opt);
+        }
+        teamB.selectedIndex = 0;
+      }
+
+      updateTeamHints();
+    }
+
+    function updateTeamHints(){
+      const tA = teamsAllCache.find(t => t.id === $("teamASelect").value);
+      const tB = teamsAllCache.find(t => t.id === $("teamBSelect").value);
+      $("teamAHint").textContent = tA ? `Members: ${membersLabel(tA.members)}` : "";
+      $("teamBHint").textContent = tB ? `Members: ${membersLabel(tB.members)}` : "";
+    }
+
+    // ===========================
+    // LEADERBOARDS
+    // ===========================
+    function calcLeaderboardsRankedDoubles(matches, phase){
+      const teams = new Map();    // key teamId => {name,wins,losses,games}
+      const indiv = new Map();    // key playerKey => stats
+
+      const ensure = (map, k, name) => {
+        if (!map.has(k)) map.set(k, { key:k, name, wins:0, losses:0, games:0 });
+        return map.get(k);
+      };
+
+      const filtered = matches.filter(m =>
+        m.gameType === "doubles" && m.ranked === true && m.phase === phase
+      );
+
+      for (const m of filtered){
+        const scoreA = Number(m.teamA?.score);
+        const scoreB = Number(m.teamB?.score);
+        if (!Number.isFinite(scoreA) || !Number.isFinite(scoreB)) continue;
+
+        const aTeamId = m.teamA?.teamId || "unknownA";
+        const bTeamId = m.teamB?.teamId || "unknownB";
+
+        const aTeamObj = teamsAllCache.find(t => t.id === aTeamId);
+        const bTeamObj = teamsAllCache.find(t => t.id === bTeamId);
+
+        const aTeamName = aTeamObj ? aTeamObj.name : (aTeamId || "Team A");
+        const bTeamName = bTeamObj ? bTeamObj.name : (bTeamId || "Team B");
+
+        const ta = ensure(teams, aTeamId, aTeamName);
+        const tb = ensure(teams, bTeamId, bTeamName);
+        ta.games++; tb.games++;
+
+        const aMembers = (m.teamA?.members || []).map(keyName).filter(Boolean);
+        const bMembers = (m.teamB?.members || []).map(keyName).filter(Boolean);
+
+        for (const pk of aMembers) ensure(indiv, pk, playerNameByKey(pk)).games++;
+        for (const pk of bMembers) ensure(indiv, pk, playerNameByKey(pk)).games++;
+
+        if (scoreA > scoreB){
+          ta.wins++; tb.losses++;
+          for (const pk of aMembers) ensure(indiv, pk, playerNameByKey(pk)).wins++;
+          for (const pk of bMembers) ensure(indiv, pk, playerNameByKey(pk)).losses++;
+        } else if (scoreB > scoreA){
+          tb.wins++; ta.losses++;
+          for (const pk of bMembers) ensure(indiv, pk, playerNameByKey(pk)).wins++;
+          for (const pk of aMembers) ensure(indiv, pk, playerNameByKey(pk)).losses++;
+        }
+      }
+
+      const toArr = (map) => Array.from(map.values()).map(x => ({
+        ...x,
+        winpct: x.games ? ((x.wins / x.games) * 100).toFixed(0) : "0"
+      })).sort((a,b) => (b.wins - a.wins) || (Number(b.winpct)-Number(a.winpct)) || a.name.localeCompare(b.name));
+
+      return { teamArr: toArr(teams), indivArr: toArr(indiv), total: filtered.length };
+    }
+
+    function calcSinglesUnranked(matches){
+      const indiv = new Map();
+      const ensure = (k) => {
+        if (!indiv.has(k)) indiv.set(k, { key:k, name: playerNameByKey(k), wins:0, losses:0, games:0 });
+        return indiv.get(k);
+      };
+
+      const filtered = matches.filter(m => m.gameType === "singles" && m.ranked === false && m.phase === "unranked");
+      for (const m of filtered){
+        const a = (m.teamA?.members || []).map(keyName).filter(Boolean)[0];
+        const b = (m.teamB?.members || []).map(keyName).filter(Boolean)[0];
+        const sa = Number(m.teamA?.score);
+        const sb = Number(m.teamB?.score);
+        if (!a || !b || !Number.isFinite(sa) || !Number.isFinite(sb)) continue;
+
+        ensure(a).games++;
+        ensure(b).games++;
+
+        if (sa > sb){ ensure(a).wins++; ensure(b).losses++; }
+        else if (sb > sa){ ensure(b).wins++; ensure(a).losses++; }
+      }
+
+      const arr = Array.from(indiv.values()).map(x => ({
+        ...x,
+        winpct: x.games ? ((x.wins / x.games) * 100).toFixed(0) : "0"
+      })).sort((a,b) => (b.wins - a.wins) || (Number(b.winpct)-Number(a.winpct)) || a.name.localeCompare(b.name));
+
+      return arr;
+    }
+
+    function renderLeaderboards(){
+      const phase = $("lbPhase").value;
+      const { teamArr, indivArr } = calcLeaderboardsRankedDoubles(matchesCache, phase);
+
+      const lbT = $("lbTeams");
+      const lbI = $("lbIndividuals");
+      const lbS = $("lbSingles");
+
+      lbT.innerHTML = teamArr.length ? "" : `<div class="empty">No ranked doubles matches in ${prettyPhase(phase)} yet.</div>`;
+      lbI.innerHTML = indivArr.length ? "" : `<div class="empty">No ranked doubles matches in ${prettyPhase(phase)} yet.</div>`;
+
+      for (const r of teamArr){
+        lbT.innerHTML += `<div class="lb-row"><div>${safeText(r.name)}</div><div>${r.wins}</div><div>${r.losses}</div><div>${r.games}</div><div>${r.winpct}%</div></div>`;
+      }
+      for (const r of indivArr){
+        lbI.innerHTML += `<div class="lb-row"><div>${safeText(r.name)}</div><div>${r.wins}</div><div>${r.losses}</div><div>${r.games}</div><div>${r.winpct}%</div></div>`;
+      }
+
+      const singlesArr = calcSinglesUnranked(matchesCache);
+      lbS.innerHTML = singlesArr.length ? "" : `<div class="empty">No singles matches yet.</div>`;
+      for (const r of singlesArr){
+        lbS.innerHTML += `<div class="lb-row"><div>${safeText(r.name)}</div><div>${r.wins}</div><div>${r.losses}</div><div>${r.games}</div><div>${r.winpct}%</div></div>`;
+      }
+    }
+
+    // ===========================
+    // MATCHES TABLE (TABBED)
+    // ===========================
+    function getMatchesForSubtab(which){
+      if (which === "preseason" || which === "regular" || which === "championship"){
+        return matchesCache.filter(m => m.gameType === "doubles" && m.ranked === true && m.phase === which);
+      }
+      if (which === "unranked"){
+        return matchesCache.filter(m => m.gameType === "doubles" && m.ranked === false && m.phase === "unranked");
+      }
+      if (which === "singles"){
+        return matchesCache.filter(m => m.gameType === "singles" && m.ranked === false && m.phase === "unranked");
+      }
+      return [];
+    }
+
+    function renderMatchesTable(){
+      const which = localStorage.getItem(LS_MATCHES_TAB) || "preseason";
+      const list = getMatchesForSubtab(which).slice().sort((a,b) => new Date(b.dateTime) - new Date(a.dateTime));
+
+      $("matchesHint").textContent =
+        which === "unranked" ? "Unranked doubles matches (ad-hoc teammates)."
+        : which === "singles" ? "Singles matches (always unranked)."
+        : `${prettyPhase(which)} ranked doubles matches.`;
+
+      const tbody = $("historyBody");
+      tbody.innerHTML = "";
+
+      $("emptyState").style.display = list.length ? "none" : "block";
+
+      const s = getSession();
+      const myKey = s.player?.key || "";
+      const isAdmin = !!s.player?.isAdmin;
+
+      for (const m of list){
+        const d = new Date(m.dateTime);
+        const canEdit = isAdmin || (myKey && m.recordedByKey === myKey);
+
+        let leftLabel = "";
+        let rightLabel = "";
+
+        if (m.gameType === "doubles" && m.ranked){
+          const tA = teamsAllCache.find(t => t.id === m.teamA.teamId);
+          const tB = teamsAllCache.find(t => t.id === m.teamB.teamId);
+          leftLabel = `<div><span class="badge ok">Team A</span><b>${safeText(formatTeamLabel(tA))}</b><div class="tiny">${membersLabel(m.teamA.members)}</div></div>`;
+          rightLabel = `<div style="margin-top:10px;"><span class="badge ok">Team B</span><b>${safeText(formatTeamLabel(tB))}</b><div class="tiny">${membersLabel(m.teamB.members)}</div></div>`;
+        } else if (m.gameType === "doubles" && !m.ranked){
+          leftLabel = `<div><span class="badge warn">Ad-hoc A</span><b>${membersLabel(m.teamA.members)}</b></div>`;
+          rightLabel = `<div style="margin-top:10px;"><span class="badge warn">Ad-hoc B</span><b>${membersLabel(m.teamB.members)}</b></div>`;
+        } else {
+          leftLabel = `<div><span class="badge dim">Singles</span><b>${membersLabel(m.teamA.members)}</b></div>`;
+          rightLabel = `<div style="margin-top:10px;"><span class="badge dim">Singles</span><b>${membersLabel(m.teamB.members)}</b></div>`;
+        }
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>
+            <div style="font-weight:900;">${d.toLocaleString()}</div>
+            <div class="tiny">${m.ranked ? "Ranked" : "Unranked"} • ${m.gameType}</div>
+          </td>
+          <td>${leftLabel}${rightLabel}</td>
+          <td><span class="score">${m.teamA.score} - ${m.teamB.score}</span></td>
+          <td>${safeText(m.recordedBy || "—")}</td>
+          <td class="actions">
+            <button class="secondary" ${canEdit ? "" : "disabled"} data-edit="${m.id}">Edit</button>
+            <button class="danger" ${canEdit ? "" : "disabled"} data-del="${m.id}">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      }
+
+      // bind edit/delete
+      tbody.querySelectorAll("button[data-del]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          if (btn.disabled) return;
+          const id = btn.getAttribute("data-del");
+          if (!confirm("Delete this match?")) return;
+          try{
+            await api(`/matches/${encodeURIComponent(id)}`, { method: "DELETE" });
+            await refreshAll(false);
+            showToast("Match deleted.");
+          } catch(e){
+            showToast("Delete failed: " + e.message);
+          }
+        });
+      });
+
+      tbody.querySelectorAll("button[data-edit]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          if (btn.disabled) return;
+          const id = btn.getAttribute("data-edit");
+          const m = matchesCache.find(x => x.id === id);
+          if (!m) return;
+
+          // Editing: only supports changing scores and participants within same type (per Worker)
+          // We'll pre-fill entry form with the same match type
+          $("scoreA").value = m.teamA.score;
+          $("scoreB").value = m.teamB.score;
+
+          if (m.gameType === "doubles" && m.ranked){
+            $("matchMode").value = "ranked_doubles";
+            $("phaseSelect").value = m.phase;
+            renderEntryMode();
+            await loadTeamsMine();
+            await loadTeamsAll();
+            renderRankedTeamDropdowns();
+            $("teamASelect").value = m.teamA.teamId || $("teamASelect").value;
+            $("teamBSelect").value = m.teamB.teamId || $("teamBSelect").value;
+            updateTeamHints();
+          } else if (m.gameType === "doubles" && !m.ranked){
+            $("matchMode").value = "unranked_doubles";
+            renderEntryMode();
+            renderUnrankedPlayerDropdowns();
+            // set players from match
+            const s = getSession();
+            const myKey = s.player?.key || "";
+            const aMembers = (m.teamA.members || []).map(keyName);
+            const bMembers = (m.teamB.members || []).map(keyName);
+
+            // try to set teammate/opp1/opp2
+            const teammate = aMembers.find(x => x !== myKey) || "";
+            if (teammate) $("myTeammate").value = teammate;
+            if (bMembers[0]) $("opp1").value = bMembers[0];
+            if (bMembers[1]) $("opp2").value = bMembers[1];
+          } else {
+            $("matchMode").value = "singles_unranked";
+            renderEntryMode();
+            renderUnrankedPlayerDropdowns();
+            const opp = (m.teamB.members || []).map(keyName)[0];
+            if (opp) $("singlesOpp").value = opp;
+          }
+
+          // stash editing id
+          $("saveBtn").dataset.editingId = id;
+          $("saveBtn").textContent = "Update Match";
+
+          setView("Matches");
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+      });
+    }
+
+    // ===========================
+    // TEAMS VIEW
+    // ===========================
+    function renderTeamsView(){
+      const myEl = $("myTeamsList");
+      const allEl = $("allTeamsList");
+
+      if (!teamsMineCache.length){
+        myEl.innerHTML = `<div class="empty">No teams yet. Create one with invite code 6969.</div>`;
+      } else {
+        myEl.innerHTML = teamsMineCache.map(t => `
+          <div style="padding:10px 0;border-bottom:1px solid rgba(148,163,184,.10);">
+            <div style="font-weight:900;">${safeText(t.name)}</div>
+            <div class="tiny">${membersLabel(t.members)} • <span class="muted">${t.id}</span></div>
+          </div>
+        `).join("");
+      }
+
+      if (!teamsAllCache.length){
+        allEl.innerHTML = `<div class="empty">No teams created yet.</div>`;
+      } else {
+        allEl.innerHTML = teamsAllCache.map(t => `
+          <div style="padding:10px 0;border-bottom:1px solid rgba(148,163,184,.10);">
+            <div style="font-weight:900;">${safeText(t.name)}</div>
+            <div class="tiny">${membersLabel(t.members)} • <span class="muted">${t.id}</span></div>
+          </div>
+        `).join("");
+      }
+    }
+
+    async function createTeamFlow(){
+      if (!isSignedIn()){
+        showToast("Sign in first.");
+        return;
+      }
+
+      const inviteCode = (prompt("Team invite code (required every time):") || "").trim();
       if (!inviteCode) return;
+
+      const s = getSession();
+      const myKey = s.player.key;
+
+      // choose teammate by dropdown-like prompt
+      const options = playersCache.filter(p => p.key !== myKey).map(p => `${p.name} (${p.key})`);
+      if (!options.length){
+        showToast("No other players exist yet.");
+        return;
+      }
+
+      const teammateName = (prompt(
+        "Enter your teammate's exact player name:\n\n" +
+        playersCache.filter(p => p.key !== myKey).map(p => `- ${p.name}`).join("\n")
+      ) || "").trim();
+      if (!teammateName) return;
+
+      const teammate = playersCache.find(p => p.name.toLowerCase() === teammateName.toLowerCase());
+      if (!teammate){
+        showToast("Teammate not found. Make sure the name matches exactly.");
+        return;
+      }
+
+      const customName = (prompt("Optional: Team display name (leave blank for default):") || "").trim();
+
+      try{
+        await api("/teams", {
+          method: "POST",
+          body: JSON.stringify({
+            inviteCode,
+            members: [myKey, teammate.key],
+            name: customName || undefined
+          })
+        });
+        showToast("Team created!");
+        await refreshAll(false);
+        setView("Teams");
+      } catch(e){
+        showToast("Create team failed: " + e.message);
+      }
+    }
+
+    // ===========================
+    // TEAM INFO VIEW
+    // ===========================
+    function renderTeamInfoSelect(){
+      const sel = $("teamInfoSelect");
+      sel.innerHTML = "";
+
+      if (!teamsAllCache.length){
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "No teams yet";
+        sel.appendChild(opt);
+        return;
+      }
+
+      for (const t of teamsAllCache){
+        const opt = document.createElement("option");
+        opt.value = t.id;
+        opt.textContent = `${t.name} (${membersLabel(t.members)})`;
+        sel.appendChild(opt);
+      }
+
+      sel.selectedIndex = 0;
+      loadTeamInfoToForm();
+    }
+
+    async function loadTeamInfoToForm(){
+      const teamId = $("teamInfoSelect").value;
+      if (!teamId) return;
+
+      try{
+        const data = await api(`/teams/${encodeURIComponent(teamId)}`, { method: "GET" });
+        const t = data.team;
+
+        $("teamInfoName").value = t.name || "";
+        $("teamInfoBio").value = t.bio || "";
+        $("teamInfoHome").value = t.homeCourt || "";
+        $("teamInfoColor").value = t.color || "";
+
+        // access message
+        const s = getSession();
+        const myKey = s.player?.key || "";
+        const canEdit = (t.members || []).includes(myKey);
+
+        $("teamInfoAccess").innerHTML = canEdit
+          ? `<span class="badge ok">You can edit this team</span> Members: ${membersLabel(t.members)}`
+          : `<span class="badge dim">View only</span> Members: ${membersLabel(t.members)}`;
+
+        $("saveTeamInfoBtn").disabled = !canEdit;
+        $("setDefaultTeamBtn").disabled = !canEdit;
+
+        $("teamInfoSaved").textContent = "";
+      } catch(e){
+        $("teamInfoSaved").textContent = "Failed to load team: " + e.message;
+      }
+    }
+
+    async function saveTeamInfo(){
+      const teamId = $("teamInfoSelect").value;
+      if (!teamId) return;
+
+      try{
+        await api(`/teams/${encodeURIComponent(teamId)}`, {
+          method: "PUT",
+          body: JSON.stringify({
+            name: $("teamInfoName").value.trim(),
+            bio: $("teamInfoBio").value,
+            homeCourt: $("teamInfoHome").value,
+            color: $("teamInfoColor").value
+          })
+        });
+        $("teamInfoSaved").textContent = "Saved!";
+        await refreshAll(false);
+      } catch(e){
+        $("teamInfoSaved").textContent = "Save failed: " + e.message;
+      }
+    }
+
+    async function setDefaultTeam(){
+      const teamId = $("teamInfoSelect").value;
+      if (!teamId) return;
+
+      try{
+        const data = await api("/players/me", {
+          method: "PUT",
+          body: JSON.stringify({ defaultTeamId: teamId })
+        });
+        // update cached session player
+        const s = getSession();
+        if (s.player){
+          s.player.defaultTeamId = data.player.defaultTeamId;
+          localStorage.setItem(LS_PLAYER, JSON.stringify(s.player));
+        }
+        showToast("Default team set!");
+        await refreshAll(false);
+      } catch(e){
+        showToast("Set default failed: " + e.message);
+      }
+    }
+
+    // ===========================
+    // MATCH SAVE (NEW)
+    // ===========================
+    async function saveMatch(){
+      if (!isSignedIn()){
+        showToast("Sign in first.");
+        return;
+      }
+
+      const mode = $("matchMode").value;
+      const scoreA = Number($("scoreA").value);
+      const scoreB = Number($("scoreB").value);
+
+      if (!Number.isFinite(scoreA) || !Number.isFinite(scoreB)){
+        showToast("Enter both scores.");
+        return;
+      }
+
+      const editingId = $("saveBtn").dataset.editingId || null;
+
+      // build payload depending on mode
+      let payload = null;
+
+      if (mode === "ranked_doubles"){
+        const phase = $("phaseSelect").value;
+        const teamAId = $("teamASelect").value;
+        const teamBId = $("teamBSelect").value;
+        if (!teamAId || !teamBId){
+          showToast("Select both teams.");
+          return;
+        }
+        if (teamAId === teamBId){
+          showToast("Team A and Team B must be different.");
+          return;
+        }
+
+        payload = {
+          seasonId: activeSeasonId || "2026",
+          phase,
+          ranked: true,
+          gameType: "doubles",
+          teamA: { teamId: teamAId, score: scoreA },
+          teamB: { teamId: teamBId, score: scoreB }
+        };
+      }
+
+      if (mode === "unranked_doubles"){
+        const s = getSession();
+        const myKey = s.player.key;
+        const teammate = $("myTeammate").value;
+        const opp1 = $("opp1").value;
+        const opp2 = $("opp2").value;
+
+        if (!teammate || !opp1 || !opp2){
+          showToast("Pick teammate and both opponents.");
+          return;
+        }
+        if (teammate === myKey){
+          showToast("Teammate must be someone else.");
+          return;
+        }
+
+        // prevent overlap
+        const set = new Set([myKey, teammate, opp1, opp2]);
+        if (set.size !== 4){
+          showToast("Players cannot overlap between teams.");
+          return;
+        }
+
+        payload = {
+          seasonId: activeSeasonId || "2026",
+          phase: "unranked",
+          ranked: false,
+          gameType: "doubles",
+          teamA: { members: [myKey, teammate], score: scoreA },
+          teamB: { members: [opp1, opp2], score: scoreB }
+        };
+      }
+
+      if (mode === "singles_unranked"){
+        const s = getSession();
+        const myKey = s.player.key;
+        const opp = $("singlesOpp").value;
+
+        if (!opp){
+          showToast("Pick an opponent.");
+          return;
+        }
+        if (opp === myKey){
+          showToast("Opponent must be someone else.");
+          return;
+        }
+
+        payload = {
+          seasonId: activeSeasonId || "2026",
+          phase: "unranked",
+          ranked: false,
+          gameType: "singles",
+          teamA: { members: [myKey], score: scoreA },
+          teamB: { members: [opp], score: scoreB }
+        };
+      }
+
+      if (!payload){
+        showToast("Invalid match mode.");
+        return;
+      }
+
+      try{
+        if (!editingId){
+          await api("/matches", { method: "POST", body: JSON.stringify(payload) });
+          showToast("Match saved!");
+        } else {
+          await api(`/matches/${encodeURIComponent(editingId)}`, { method: "PUT", body: JSON.stringify(payload) });
+          showToast("Match updated!");
+          delete $("saveBtn").dataset.editingId;
+          $("saveBtn").textContent = "Save Match";
+        }
+
+        clearEntry();
+        await refreshAll(false);
+
+        // jump to relevant matches tab
+        setView("Matches");
+        if (mode === "ranked_doubles"){
+          setMatchesSubtab($("phaseSelect").value);
+        } else if (mode === "unranked_doubles"){
+          setMatchesSubtab("unranked");
+        } else {
+          setMatchesSubtab("singles");
+        }
+      } catch(e){
+        if (e.status === 409){
+          showToast("Duplicate match detected — looks like this was already logged recently.");
+        } else {
+          showToast("Save failed: " + e.message);
+        }
+      }
+    }
+
+    function clearEntry(){
+      $("scoreA").value = "";
+      $("scoreB").value = "";
+    }
+
+    // ===========================
+    // PROFILE / ADMIN
+    // ===========================
+    async function createProfile(){
+      const invite = (prompt("Invite code to create a player profile (required every time):") || "").trim();
+      if (!invite) return;
 
       const name = (prompt("Your unique player name:") || "").trim();
       if (!name) return;
 
-      const pin = (prompt(`Choose a PIN for ${name} (4–8 digits):`) || "").trim();
+      const pin = (prompt(`Choose your PIN (4–8 digits):`) || "").trim();
       if (!pin) return;
-      if (!isValidPin(pin)) { alert("PIN must be 4–8 digits."); return; }
 
-      await api("/profile/create", {
-        method: "POST",
-        body: JSON.stringify({ name, pin, createPin: inviteCode })
-      });
-
-      alert(`Profile created for: ${name}\nNow select your name and Unlock with your PIN.`);
-      await renderPlayerSelect();
-      await checkApiHealth();
+      try{
+        await api("/profile/create", {
+          method: "POST",
+          body: JSON.stringify({ createPin: invite, name, pin })
+        });
+        showToast(`Profile created for ${name}. Now select your name and Unlock.`);
+        await refreshAll(false);
+      } catch(e){
+        showToast("Create profile failed: " + e.message);
+      }
     }
 
-    async function managePlayersAdmin() {
-      const adminPin = (prompt("Admin PIN to manage players:") || "").trim();
+    async function adminManagePlayers(){
+      const adminPin = (prompt("Admin PIN:") || "").trim();
       if (!adminPin) return;
 
       const action = prompt(
@@ -487,215 +1404,201 @@
       );
       if (!action) return;
 
-      if (action === "1") {
-        const name = (prompt("Player name to reset:") || "").trim();
-        if (!name) return;
-        const newPin = (prompt(`New PIN for ${name} (4–8 digits):`) || "").trim();
-        if (!newPin) return;
-        if (!isValidPin(newPin)) { alert("PIN must be 4–8 digits."); return; }
+      try{
+        if (action === "1"){
+          const name = (prompt("Player name to reset:") || "").trim();
+          if (!name) return;
+          const newPin = (prompt("New PIN (4–8 digits):") || "").trim();
+          if (!newPin) return;
 
-        await api("/admin/player", {
-          method: "POST",
-          body: JSON.stringify({ adminPin, action: "reset", name, newPin })
-        });
-        alert(`Reset PIN for: ${name}`);
-      } else if (action === "2") {
-        const name = (prompt("Player name to remove:") || "").trim();
-        if (!name) return;
-        if (!confirm(`Remove ${name}?`)) return;
+          await api("/admin/player", {
+            method: "POST",
+            body: JSON.stringify({ adminPin, action: "reset", name, newPin })
+          });
+          showToast("PIN reset.");
+        } else if (action === "2"){
+          const name = (prompt("Player name to remove:") || "").trim();
+          if (!name) return;
+          if (!confirm(`Remove ${name}?`)) return;
 
-        await api("/admin/player", {
-          method: "POST",
-          body: JSON.stringify({ adminPin, action: "remove", name })
-        });
-        alert(`Removed: ${name}`);
-      } else if (action === "3") {
-        const name = (prompt("Player name to update admin status:") || "").trim();
-        if (!name) return;
-        const yn = (prompt("Make admin? Type YES to grant admin, NO to remove admin:") || "").trim().toUpperCase();
-        if (yn !== "YES" && yn !== "NO") { alert("Please type YES or NO."); return; }
+          await api("/admin/player", {
+            method: "POST",
+            body: JSON.stringify({ adminPin, action: "remove", name })
+          });
+          showToast("Player removed.");
+        } else if (action === "3"){
+          const name = (prompt("Player name:") || "").trim();
+          if (!name) return;
+          const yn = (prompt("Make admin? Type YES to grant admin, NO to remove admin:") || "").trim().toUpperCase();
+          if (yn !== "YES" && yn !== "NO") return;
 
-        await api("/admin/player", {
-          method: "POST",
-          body: JSON.stringify({ adminPin, action: "setAdmin", name, makeAdmin: yn === "YES" })
-        });
-        alert(`Updated admin status for: ${name}`);
-      } else {
-        alert("Unknown action.");
-        return;
-      }
+          await api("/admin/player", {
+            method: "POST",
+            body: JSON.stringify({ adminPin, action: "setAdmin", name, makeAdmin: yn === "YES" })
+          });
+          showToast("Admin status updated.");
+        } else {
+          showToast("Unknown action.");
+          return;
+        }
 
-      await renderPlayerSelect();
-      await checkApiHealth();
-    }
-
-    async function saveMatch() {
-      const session = getSession();
-      if (!session.token || !session.player) {
-        alert("Sign in first.");
-        return;
-      }
-
-      const aPlayersRaw = (document.getElementById("teamAPlayers").value || "").trim();
-      const bPlayersRaw = (document.getElementById("teamBPlayers").value || "").trim();
-      const aScore = parseInt(document.getElementById("teamAScore").value || "", 10);
-      const bScore = parseInt(document.getElementById("teamBScore").value || "", 10);
-
-      if (!aPlayersRaw || !bPlayersRaw) { alert("Enter players for both teams (comma-separated)."); return; }
-      if (!Number.isFinite(aScore) || !Number.isFinite(bScore)) { alert("Enter both scores."); return; }
-
-      const payload = {
-        teamA: { name: "Team A", players: aPlayersRaw.split(",").map(x => x.trim()).filter(Boolean), score: aScore },
-        teamB: { name: "Team B", players: bPlayersRaw.split(",").map(x => x.trim()).filter(Boolean), score: bScore }
-      };
-
-      if (!editingId) {
-        await api("/matches", { method: "POST", body: JSON.stringify(payload) });
-      } else {
-        await api(`/matches/${encodeURIComponent(editingId)}`, { method: "PUT", body: JSON.stringify(payload) });
-        editingId = null;
-        document.getElementById("saveMatchBtn").textContent = "Save Match";
-      }
-
-      document.getElementById("teamAPlayers").value = "";
-      document.getElementById("teamBPlayers").value = "";
-      document.getElementById("teamAScore").value = "";
-      document.getElementById("teamBScore").value = "";
-
-      await renderMatches();
-      setTab("history"); // optional: jump to history after save
-    }
-
-    async function renderMatches() {
-      const matches = await loadMatches();
-      const tbody = document.getElementById("historyBody");
-      tbody.innerHTML = "";
-
-      document.getElementById("totalMatches").textContent = matches.length;
-      document.getElementById("matchCount").textContent = `${matches.length} match${matches.length === 1 ? "" : "es"}`;
-      document.getElementById("emptyState").style.display = matches.length ? "none" : "block";
-
-      matches.sort((a, b) => new Date(b.dateTime) - new Date(a.dateTime));
-
-      const session = getSession();
-      const meKey = session.player?.key || "";
-      const isAdmin = !!session.player?.isAdmin;
-
-      for (const m of matches) {
-        const d = new Date(m.dateTime);
-        const canEdit = isAdmin || (meKey && m.recordedByKey === meKey);
-
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${d.toLocaleString()}</td>
-          <td>
-            <div><strong>Team A</strong> <small style="color:#94a3b8">(${(m.teamA.players||[]).join(", ")||"—"})</small></div>
-            <div><strong>Team B</strong> <small style="color:#94a3b8">(${(m.teamB.players||[]).join(", ")||"—"})</small></div>
-          </td>
-          <td><span class="score-badge">${m.teamA.score} - ${m.teamB.score}</span></td>
-          <td>${m.recordedBy || "—"}</td>
-          <td class="actions">
-            <button class="secondary" ${canEdit ? "" : "disabled"} data-edit="${m.id}">Edit</button>
-            <button class="danger" ${canEdit ? "" : "disabled"} data-del="${m.id}">Delete</button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      }
-
-      tbody.querySelectorAll("button[data-edit]").forEach(btn => {
-        btn.addEventListener("click", async () => {
-          if (btn.disabled) return;
-          const id = btn.getAttribute("data-edit");
-          const all = await loadMatches();
-          const m = all.find(x => x.id === id);
-          if (!m) return;
-
-          editingId = id;
-          document.getElementById("teamAPlayers").value = (m.teamA.players || []).join(", ");
-          document.getElementById("teamBPlayers").value = (m.teamB.players || []).join(", ");
-          document.getElementById("teamAScore").value = m.teamA.score;
-          document.getElementById("teamBScore").value = m.teamB.score;
-          document.getElementById("saveMatchBtn").textContent = "Update Match";
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        });
-      });
-
-      tbody.querySelectorAll("button[data-del]").forEach(btn => {
-        btn.addEventListener("click", async () => {
-          if (btn.disabled) return;
-          const id = btn.getAttribute("data-del");
-          if (!confirm("Delete this match?")) return;
-          await api(`/matches/${encodeURIComponent(id)}`, { method: "DELETE" });
-          await renderMatches();
-        });
-      });
-
-      const { indivArr, teamArr } = calcLeaderboards(matches);
-      const lbI = document.getElementById("lbIndividuals");
-      const lbT = document.getElementById("lbTeams");
-      lbI.innerHTML = ""; lbT.innerHTML = "";
-
-      for (const r of indivArr) {
-        lbI.innerHTML += `<div class="lb-row"><div>${r.name}</div><div>${r.wins}</div><div>${r.losses}</div><div>${r.games}</div><div>${r.winpct}%</div></div>`;
-      }
-      for (const r of teamArr) {
-        lbT.innerHTML += `<div class="lb-row"><div>${r.name}</div><div>${r.wins}</div><div>${r.losses}</div><div>${r.games}</div><div>${r.winpct}%</div></div>`;
+        await refreshAll(false);
+      } catch(e){
+        showToast("Admin action failed: " + e.message);
       }
     }
 
-    // ----- Startup -----
+    async function signIn(){
+      const sel = $("playerSelect").value;
+      const pin = ($("pinInput").value || "").trim();
+
+      if (!sel){ showToast("Pick a player."); return; }
+      if (!pin){ showToast("Enter your PIN."); return; }
+
+      const picked = playersCache.find(p => p.key === sel);
+      if (!picked){ showToast("Player not found."); return; }
+
+      try{
+        const data = await api("/auth/pin", {
+          method: "POST",
+          body: JSON.stringify({ name: picked.name, pin })
+        });
+        setSession(data.token, data.player);
+        $("pinInput").value = "";
+
+        await refreshAll(false);
+
+        // set entry defaults
+        renderUnrankedPlayerDropdowns();
+        await loadTeamsMine();
+        renderRankedTeamDropdowns();
+
+        showToast("Unlocked!");
+      } catch(e){
+        showToast("Sign in failed: " + e.message);
+      }
+    }
+
+    // ===========================
+    // REFRESH (one call to sync everything)
+    // ===========================
+    async function refreshAll(showApiToast){
+      try{
+        await loadPlayers();
+        await renderPlayerSelect();
+
+        await loadTeamsAll();
+        await loadTeamsMine();
+
+        await loadMatches();
+
+        // update dropdowns
+        renderUnrankedPlayerDropdowns();
+        renderRankedTeamDropdowns();
+        renderTeamsView();
+        renderTeamInfoSelect();
+
+        // leaderboards + matches view
+        renderLeaderboards();
+
+        const matchesTab = localStorage.getItem(LS_MATCHES_TAB) || "preseason";
+        setMatchesSubtab(matchesTab);
+
+        setApiStatus(true, "ok");
+        if (showApiToast) showToast("Reloaded.");
+      } catch(e){
+        setApiStatus(false, "error");
+        if (showApiToast) showToast("Reload failed: " + e.message);
+      }
+    }
+
+    async function healthCheck(){
+      try{
+        await loadPlayers();
+        setApiStatus(true, "ok");
+      } catch(e){
+        setApiStatus(false, e.message);
+      }
+    }
+
+    // ===========================
+    // INIT
+    // ===========================
     document.addEventListener("DOMContentLoaded", async () => {
       updateAuthUI();
+      renderEntryMode();
 
-      // tab setup
-      document.getElementById("tabLeaderboards").addEventListener("click", () => setTab("leaderboards"));
-      document.getElementById("tabHistory").addEventListener("click", () => setTab("history"));
-      setTab("leaderboards");
+      // Tabs
+      $("tabLeaderboards").addEventListener("click", () => setView("Leaderboards"));
+      $("tabMatches").addEventListener("click", () => { setView("Matches"); renderMatchesTable(); });
+      $("tabTeams").addEventListener("click", () => setView("Teams"));
+      $("tabTeamInfo").addEventListener("click", () => setView("TeamInfo"));
 
-      document.getElementById("signInBtn").addEventListener("click", async () => {
-        try { await signIn(); }
-        catch (e) { alert("Sign in failed: " + e.message); console.error(e); }
+      // Matches subtabs
+      $("m_preseason").addEventListener("click", () => setMatchesSubtab("preseason"));
+      $("m_regular").addEventListener("click", () => setMatchesSubtab("regular"));
+      $("m_championship").addEventListener("click", () => setMatchesSubtab("championship"));
+      $("m_unranked").addEventListener("click", () => setMatchesSubtab("unranked"));
+      $("m_singles").addEventListener("click", () => setMatchesSubtab("singles"));
+
+      // Entry mode
+      $("matchMode").addEventListener("change", () => {
+        renderEntryMode();
       });
 
-      document.getElementById("signOutBtn").addEventListener("click", async () => {
+      $("teamASelect").addEventListener("change", () => {
+        renderRankedTeamDropdowns(); // rebuild Team B excluding A
+      });
+      $("teamBSelect").addEventListener("change", updateTeamHints);
+
+      // Leaderboards filter
+      $("lbPhase").addEventListener("change", renderLeaderboards);
+
+      // Buttons
+      $("signInBtn").addEventListener("click", signIn);
+      $("signOutBtn").addEventListener("click", async () => {
         clearSession();
-        await renderMatches();
+        // reset
+        $("saveBtn").textContent = "Save Match";
+        delete $("saveBtn").dataset.editingId;
+        await refreshAll(false);
       });
 
-      document.getElementById("reloadPlayersBtn").addEventListener("click", async () => {
-        try {
-          await renderPlayerSelect();
-          await checkApiHealth();
-          alert("Players refreshed.");
-        } catch (e) {
-          alert("Reload players failed: " + e.message);
-        }
+      $("reloadBtn").addEventListener("click", () => refreshAll(true));
+      $("createProfileBtn").addEventListener("click", createProfile);
+      $("managePlayersBtn").addEventListener("click", adminManagePlayers);
+
+      $("saveBtn").addEventListener("click", saveMatch);
+      $("resetEntryBtn").addEventListener("click", () => {
+        clearEntry();
+        $("saveBtn").textContent = "Save Match";
+        delete $("saveBtn").dataset.editingId;
       });
 
-      document.getElementById("createProfileBtn").addEventListener("click", async () => {
-        try { await createPlayerProfile(); }
-        catch (e) { alert("Create profile failed: " + e.message); console.error(e); }
+      $("createTeamBtn").addEventListener("click", createTeamFlow);
+
+      $("teamInfoSelect").addEventListener("change", loadTeamInfoToForm);
+      $("saveTeamInfoBtn").addEventListener("click", saveTeamInfo);
+      $("setDefaultTeamBtn").addEventListener("click", setDefaultTeam);
+
+      // Enter key on pin
+      $("pinInput").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") $("signInBtn").click();
       });
 
-      document.getElementById("managePlayersBtn").addEventListener("click", async () => {
-        try { await managePlayersAdmin(); }
-        catch (e) { alert("Admin manage failed: " + e.message); console.error(e); }
-      });
+      await healthCheck();
+      await refreshAll(false);
 
-      document.getElementById("saveMatchBtn").addEventListener("click", async () => {
-        try { await saveMatch(); }
-        catch (e) { alert("Save failed: " + e.message); console.error(e); }
-      });
+      // restore last main view
+      const last = localStorage.getItem(LS_ACTIVE_VIEW) || "Leaderboards";
+      setView(last);
 
-      document.getElementById("pinInput").addEventListener("keydown", (e) => {
-        if (e.key === "Enter") document.getElementById("signInBtn").click();
-      });
+      // restore matches tab
+      const mt = localStorage.getItem(LS_MATCHES_TAB) || "preseason";
+      setMatchesSubtab(mt);
 
-      try { await renderPlayerSelect(); } catch (e) {}
-      await checkApiHealth();
-
-      try { await renderMatches(); }
-      catch (e) { alert("Could not load matches: " + e.message); }
+      // entry defaults
+      renderEntryMode();
     });
   </script>
 </body>
