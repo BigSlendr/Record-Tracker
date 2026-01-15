@@ -788,61 +788,87 @@
     // ===========================
     // LEADERBOARDS
     // ===========================
-    function calcLeaderboardsRankedDoubles(matches, phase){
-      const teams = new Map();    // key teamId => {name,wins,losses,games}
-      const indiv = new Map();    // key playerKey => stats
+function calcLeaderboardsRankedDoubles(matches, phase){
+  const teams = new Map();    // key => {name,wins,losses,games}
+  const indiv = new Map();    // key playerKey => stats
 
-      const ensure = (map, k, name) => {
-        if (!map.has(k)) map.set(k, { key:k, name, wins:0, losses:0, games:0 });
-        return map.get(k);
-      };
+  const ensure = (map, k, name) => {
+    if (!map.has(k)) map.set(k, { key:k, name, wins:0, losses:0, games:0 });
+    return map.get(k);
+  };
 
-      const filtered = matches.filter(m =>
-        m.gameType === "doubles" && m.ranked === true && m.phase === phase
-      );
+  // helper: stable key for a 2-player team
+  const teamKeyFromMembers = (members) => {
+    const mk = (members || []).map(keyName).filter(Boolean).sort();
+    return `members:${mk.join("|")}`; // e.g. members:marc|marino
+  };
 
-      for (const m of filtered){
-        const scoreA = Number(m.teamA?.score);
-        const scoreB = Number(m.teamB?.score);
-        if (!Number.isFinite(scoreA) || !Number.isFinite(scoreB)) continue;
+  // helper: label from members (pretty)
+  const labelFromMembers = (members) => {
+    const mk = (members || []).map(keyName).filter(Boolean);
+    return membersLabel(mk) || "Unknown Team";
+  };
 
-        const aTeamId = m.teamA?.teamId || "unknownA";
-        const bTeamId = m.teamB?.teamId || "unknownB";
+  const filtered = matches.filter(m =>
+    m.gameType === "doubles" && m.ranked === true && m.phase === phase
+  );
 
-        const aTeamObj = teamsAllCache.find(t => t.id === aTeamId);
-        const bTeamObj = teamsAllCache.find(t => t.id === bTeamId);
+  for (const m of filtered){
+    const scoreA = Number(m.teamA?.score);
+    const scoreB = Number(m.teamB?.score);
+    if (!Number.isFinite(scoreA) || !Number.isFinite(scoreB)) continue;
 
-        const aTeamName = aTeamObj ? aTeamObj.name : (aTeamId || "Team A");
-        const bTeamName = bTeamObj ? bTeamObj.name : (bTeamId || "Team B");
+    // Prefer teamId; otherwise build a stable key from the two members
+    const aId = m.teamA?.teamId ? `team:${m.teamA.teamId}` : teamKeyFromMembers(m.teamA?.members);
+    const bId = m.teamB?.teamId ? `team:${m.teamB.teamId}` : teamKeyFromMembers(m.teamB?.members);
 
-        const ta = ensure(teams, aTeamId, aTeamName);
-        const tb = ensure(teams, bTeamId, bTeamName);
-        ta.games++; tb.games++;
+    // Try to find official team names if teamId exists
+    let aName = "Team A";
+    let bName = "Team B";
 
-        const aMembers = (m.teamA?.members || []).map(keyName).filter(Boolean);
-        const bMembers = (m.teamB?.members || []).map(keyName).filter(Boolean);
-
-        for (const pk of aMembers) ensure(indiv, pk, playerNameByKey(pk)).games++;
-        for (const pk of bMembers) ensure(indiv, pk, playerNameByKey(pk)).games++;
-
-        if (scoreA > scoreB){
-          ta.wins++; tb.losses++;
-          for (const pk of aMembers) ensure(indiv, pk, playerNameByKey(pk)).wins++;
-          for (const pk of bMembers) ensure(indiv, pk, playerNameByKey(pk)).losses++;
-        } else if (scoreB > scoreA){
-          tb.wins++; ta.losses++;
-          for (const pk of bMembers) ensure(indiv, pk, playerNameByKey(pk)).wins++;
-          for (const pk of aMembers) ensure(indiv, pk, playerNameByKey(pk)).losses++;
-        }
-      }
-
-      const toArr = (map) => Array.from(map.values()).map(x => ({
-        ...x,
-        winpct: x.games ? ((x.wins / x.games) * 100).toFixed(0) : "0"
-      })).sort((a,b) => (b.wins - a.wins) || (Number(b.winpct)-Number(a.winpct)) || a.name.localeCompare(b.name));
-
-      return { teamArr: toArr(teams), indivArr: toArr(indiv), total: filtered.length };
+    if ((m.teamA?.teamId || "") && teamsAllCache.length){
+      const tA = teamsAllCache.find(t => t.id === m.teamA.teamId);
+      aName = tA?.name || labelFromMembers(m.teamA?.members);
+    } else {
+      aName = labelFromMembers(m.teamA?.members);
     }
+
+    if ((m.teamB?.teamId || "") && teamsAllCache.length){
+      const tB = teamsAllCache.find(t => t.id === m.teamB.teamId);
+      bName = tB?.name || labelFromMembers(m.teamB?.members);
+    } else {
+      bName = labelFromMembers(m.teamB?.members);
+    }
+
+    const ta = ensure(teams, aId, aName);
+    const tb = ensure(teams, bId, bName);
+    ta.games++; tb.games++;
+
+    const aMembers = (m.teamA?.members || []).map(keyName).filter(Boolean);
+    const bMembers = (m.teamB?.members || []).map(keyName).filter(Boolean);
+
+    for (const pk of aMembers) ensure(indiv, pk, playerNameByKey(pk)).games++;
+    for (const pk of bMembers) ensure(indiv, pk, playerNameByKey(pk)).games++;
+
+    if (scoreA > scoreB){
+      ta.wins++; tb.losses++;
+      for (const pk of aMembers) ensure(indiv, pk, playerNameByKey(pk)).wins++;
+      for (const pk of bMembers) ensure(indiv, pk, playerNameByKey(pk)).losses++;
+    } else if (scoreB > scoreA){
+      tb.wins++; ta.losses++;
+      for (const pk of bMembers) ensure(indiv, pk, playerNameByKey(pk)).wins++;
+      for (const pk of aMembers) ensure(indiv, pk, playerNameByKey(pk)).losses++;
+    }
+  }
+
+  const toArr = (map) => Array.from(map.values()).map(x => ({
+    ...x,
+    winpct: x.games ? ((x.wins / x.games) * 100).toFixed(0) : "0"
+  })).sort((a,b) => (b.wins - a.wins) || (Number(b.winpct)-Number(a.winpct)) || a.name.localeCompare(b.name));
+
+  return { teamArr: toArr(teams), indivArr: toArr(indiv), total: filtered.length };
+}
+
 
     function calcSinglesUnranked(matches){
       const indiv = new Map();
